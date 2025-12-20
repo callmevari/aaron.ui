@@ -14,6 +14,7 @@ type Step =
   | 'blood-cat-form'
   | 'location-modal'
   | 'location-confirm'
+  | 'notifications'
 
 const step = ref<Step>('profile')
 const profileType = ref<ProfileType | null>(null)
@@ -67,6 +68,92 @@ const userLocation = reactive({
 })
 
 const mapSearchQuery = ref('')
+
+// Notification state
+const notificationState = reactive({
+  permissionStatus: 'default' as NotificationPermission | 'unsupported',
+  isRequesting: false,
+  // Subscription preferences (for blood seekers: what they want to be notified about)
+  subscriptions: {
+    bloodUnitsAvailable: true, // Notify when matching blood units are available
+    donorsAvailable: true      // Notify when matching donors are available
+  }
+})
+
+// Get patient name from form
+const patientName = computed(() => {
+  if (animalType.value === 'cat') return catBloodForm.patientName
+  if (animalType.value === 'dog') return dogBloodForm.patientName
+  return ''
+})
+
+// Build subscription filters based on flow data
+const getSubscriptionFilters = () => {
+  const form = animalType.value === 'cat' ? catBloodForm : dogBloodForm
+  const bloodType = form.bloodType
+
+  return {
+    animalType: animalType.value,
+    // Only include bloodType filter if user knows their pet's blood type
+    bloodType: bloodType && bloodType !== 'unknown' ? bloodType : null,
+    radiusKm: searchRadius.value
+  }
+}
+
+// Request notification permission
+// Note: Full push notifications require Firebase (Android) / APNs (iOS) setup
+// For now, we request permission and note that push will be configured later
+const requestNotificationPermission = async () => {
+  notificationState.isRequesting = true
+
+  try {
+    // Check if we're on a native platform
+    let isNative = false
+    try {
+      const { Capacitor } = await import('@capacitor/core')
+      isNative = Capacitor.isNativePlatform()
+    } catch {
+      isNative = false
+    }
+
+    if (isNative) {
+      // On native platforms, we'll use the UserNotifications framework
+      // This requires additional setup (Firebase/APNs) for real push notifications
+      // For now, we'll mark as granted and configure push later
+      console.log('📱 Native platform detected - push notifications require Firebase/APNs setup')
+      console.log('📝 Marking notifications as enabled for this session')
+      notificationState.permissionStatus = 'granted'
+      return true
+    } else {
+      // Web platform: use browser Notification API
+      if (!('Notification' in window)) {
+        notificationState.permissionStatus = 'unsupported'
+        console.warn('Push notifications not supported in this browser')
+        return false
+      }
+
+      const permission = await Notification.requestPermission()
+      notificationState.permissionStatus = permission
+
+      if (permission === 'granted') {
+        console.log('✅ Browser notification permission granted')
+        return true
+      } else {
+        console.log('❌ Browser notification permission denied:', permission)
+        return false
+      }
+    }
+  } catch (error) {
+    console.error('Error requesting notification permission:', error)
+    notificationState.permissionStatus = 'denied'
+    return false
+  } finally {
+    notificationState.isRequesting = false
+  }
+}
+
+// Location radius (default 100km)
+const searchRadius = ref(100)
 
 // Options for forms
 const dogBloodTypeOptions = [
@@ -218,20 +305,112 @@ const searchLocation = async () => {
 }
 
 const confirmLocation = () => {
-  // TODO: Submit full request with location to API
-  console.log('Final submission with location:', {
-    profileType: profileType.value,
-    emergencyType: emergencyType.value,
-    animalType: animalType.value,
-    form: animalType.value === 'cat' ? catBloodForm : dogBloodForm,
-    location: {
-      latitude: userLocation.latitude,
-      longitude: userLocation.longitude,
-      address: userLocation.address
-    }
+  // Save location with default 100km radius and proceed to notifications
+  console.log('Location confirmed:', {
+    latitude: userLocation.latitude,
+    longitude: userLocation.longitude,
+    address: userLocation.address,
+    radiusKm: searchRadius.value
   })
-  // Navigate to success or main app
-  navigateTo('/')
+  step.value = 'notifications'
+}
+
+// Submission state
+const isSubmitting = ref(false)
+
+// Mock API calls for the blood request flow
+const mockApi = {
+  // Create blood request and notify potential helpers (donors, vets, blood banks)
+  async createBloodRequest(data: any) {
+    const notificationType = data.animalType === 'cat' ? 'CAT_BLOOD_REQUEST' : 'DOG_BLOOD_REQUEST'
+
+    console.log(`📤 Creating blood request...`)
+    console.log(`🔔 Broadcasting ${notificationType} to helpers within ${data.radiusKm}km...`)
+    console.log('Request payload:', {
+      type: notificationType,
+      notification: {
+        title: data.animalType === 'cat' ? '🐱 Urgent: Cat Blood Needed' : '🐶 Urgent: Dog Blood Needed',
+        body: `${data.patientName} needs ${data.bloodType || 'any'} blood type. ${data.radiusKm}km away.`
+      },
+      data: {
+        requestId: crypto.randomUUID(),
+        ...data,
+        timestamp: new Date().toISOString()
+      }
+    })
+
+    await new Promise(resolve => setTimeout(resolve, 800))
+    return { success: true, requestId: crypto.randomUUID(), notifiedHelpers: Math.floor(Math.random() * 50) + 10 }
+  },
+
+  // Subscribe user to receive notifications about available blood/donors
+  async subscribeToNotifications(subscriptions: any, filters: any) {
+    console.log('📱 Registering notification subscriptions...')
+    console.log('Subscriptions:', subscriptions)
+    console.log('Filters:', filters)
+
+    // In production: register with push notification service (FCM/APNs)
+    // Topics to subscribe:
+    // - BLOOD_UNIT_AVAILABLE_{animalType}_{bloodType?}
+    // - DONOR_AVAILABLE_{animalType}_{bloodType?}
+
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return { success: true }
+  }
+}
+
+const finalSubmit = async () => {
+  isSubmitting.value = true
+
+  const form = animalType.value === 'cat' ? catBloodForm : dogBloodForm
+  const filters = getSubscriptionFilters()
+
+  try {
+    // For blood request flow
+    if (profileType.value === 'emergency' && emergencyType.value === 'blood') {
+      // 1. Create the blood request (broadcasts to helpers: donors, vets, blood banks)
+      const requestResult = await mockApi.createBloodRequest({
+        animalType: animalType.value,
+        bloodType: filters.bloodType,
+        patientName: form.patientName,
+        isHospitalized: form.isHospitalized,
+        hospitalName: form.hospitalName,
+        hospitalAddress: form.hospitalAddress,
+        comment: form.comment,
+        location: {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          address: userLocation.address
+        },
+        radiusKm: filters.radiusKm
+      })
+
+      console.log(`✅ Blood request created. Notified ${requestResult.notifiedHelpers} potential helpers.`)
+
+      // 2. Subscribe this user to receive notifications about available blood/donors
+      if (notificationState.permissionStatus === 'granted') {
+        await mockApi.subscribeToNotifications(notificationState.subscriptions, filters)
+        console.log('✅ Subscribed to blood availability notifications')
+      }
+
+      // Navigate to request results
+      navigateTo({
+        path: '/request',
+        query: {
+          type: animalType.value,
+          bloodType: form.bloodType,
+          patient: form.patientName
+        }
+      })
+    } else {
+      // Other flows - go to home for now
+      navigateTo('/')
+    }
+  } catch (error) {
+    console.error('Submission failed:', error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const selectVetType = (type: VetType) => {
@@ -260,6 +439,8 @@ const goBack = () => {
     step.value = animalType.value === 'cat' ? 'blood-cat-form' : 'blood-dog-form'
   } else if (step.value === 'location-confirm') {
     step.value = 'location-modal'
+  } else if (step.value === 'notifications') {
+    step.value = 'location-confirm'
   }
 }
 
@@ -276,6 +457,7 @@ const stepTitle = computed(() => {
     case 'blood-cat-form': return 'Cat blood request'
     case 'location-modal': return 'Location needed'
     case 'location-confirm': return 'Confirm your location'
+    case 'notifications': return 'Stay connected'
     default: return ''
   }
 })
@@ -915,6 +1097,170 @@ const stepTitle = computed(() => {
               </button>
             </template>
           </div>
+
+          <!-- Step: Notifications -->
+          <div v-else-if="step === 'notifications'" key="notifications" class="space-y-6">
+            <!-- Header Icon -->
+            <div class="flex justify-center">
+              <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 flex items-center justify-center">
+                <Icon name="heroicons:bell-alert" class="w-10 h-10 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+
+            <!-- Intro Text -->
+            <div class="text-center space-y-2">
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Get notified instantly when blood becomes available for {{ patientName || 'your pet' }}.
+              </p>
+            </div>
+
+            <!-- Permission Request Section -->
+            <div v-if="notificationState.permissionStatus === 'default'" class="space-y-4">
+              <button
+                type="button"
+                @click="requestNotificationPermission"
+                :disabled="notificationState.isRequesting"
+                class="w-full py-4 px-4 flex items-center justify-center gap-3 rounded-2xl border-2 border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 font-medium transition hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50"
+              >
+                <template v-if="notificationState.isRequesting">
+                  <div class="w-5 h-5 border-2 border-orange-400/30 border-t-orange-600 rounded-full animate-spin"></div>
+                  Requesting permission...
+                </template>
+                <template v-else>
+                  <Icon name="heroicons:bell" class="w-6 h-6" />
+                  Enable notifications
+                </template>
+              </button>
+              <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+                We'll only notify you about matching blood availability.
+              </p>
+            </div>
+
+            <!-- Permission Granted -->
+            <div v-else-if="notificationState.permissionStatus === 'granted'" class="space-y-4">
+              <!-- Success Badge -->
+              <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span class="text-sm font-medium text-green-700 dark:text-green-300">Notifications enabled</span>
+              </div>
+
+              <!-- Subscription Options -->
+              <div class="space-y-3">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Notify me when:</p>
+
+                <!-- Blood Units Available -->
+                <label
+                  :class="[
+                    'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                    notificationState.subscriptions.bloodUnitsAvailable
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                  ]"
+                >
+                  <input
+                    v-model="notificationState.subscriptions.bloodUnitsAvailable"
+                    type="checkbox"
+                    class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+                  />
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-900 dark:text-white">Blood units available</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Blood banks have matching blood in stock
+                    </p>
+                  </div>
+                  <Icon name="heroicons:beaker" class="w-5 h-5 text-red-500" />
+                </label>
+
+                <!-- Donors Available -->
+                <label
+                  :class="[
+                    'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
+                    notificationState.subscriptions.donorsAvailable
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                  ]"
+                >
+                  <input
+                    v-model="notificationState.subscriptions.donorsAvailable"
+                    type="checkbox"
+                    class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+                  />
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-900 dark:text-white">Donors available</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Nearby donors ready to help
+                    </p>
+                  </div>
+                  <Icon name="heroicons:heart" class="w-5 h-5 text-orange-500" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Permission Denied -->
+            <div v-else-if="notificationState.permissionStatus === 'denied'" class="space-y-4">
+              <div class="flex items-start gap-3 py-3 px-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                <Icon name="heroicons:exclamation-triangle" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                <div>
+                  <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Notifications blocked</p>
+                  <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                    Please enable notifications in your device settings to receive alerts when blood becomes available.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Unsupported -->
+            <div v-else-if="notificationState.permissionStatus === 'unsupported'" class="space-y-4">
+              <div class="flex items-start gap-3 py-3 px-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <Icon name="heroicons:information-circle" class="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  Push notifications are not supported in this environment. You can still track your request in the app.
+                </p>
+              </div>
+            </div>
+
+            <!-- Info Message -->
+            <div class="p-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50 border border-gray-200 dark:border-gray-700">
+              <div class="flex gap-3">
+                <Icon name="heroicons:information-circle" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  Your request will be sent to <span class="font-medium text-gray-900 dark:text-white">donors, veterinaries, and blood banks</span> within 100km of your location.
+                </p>
+              </div>
+            </div>
+
+            <!-- Continue Button -->
+            <button
+              type="button"
+              @click="finalSubmit"
+              :disabled="isSubmitting"
+              class="w-full py-3.5 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <template v-if="isSubmitting">
+                <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Sending request...
+              </template>
+              <template v-else>
+                Send blood request
+                <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
+              </template>
+            </button>
+
+            <p v-if="isSubmitting" class="text-center text-sm text-orange-600 dark:text-orange-400">
+              Notifying donors and blood banks in your area...
+            </p>
+
+            <!-- Skip notifications option -->
+            <button
+              v-if="notificationState.permissionStatus === 'default'"
+              type="button"
+              @click="finalSubmit"
+              :disabled="isSubmitting"
+              class="w-full text-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition"
+            >
+              Skip for now
+            </button>
+          </div>
         </Transition>
       </div>
     </div>
@@ -946,6 +1292,21 @@ const stepTitle = computed(() => {
   }
   50% {
     box-shadow: 0 0 20px 4px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.emergency-pulse-icon {
+  animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px 4px rgba(239, 68, 68, 0.2);
   }
 }
 </style>
