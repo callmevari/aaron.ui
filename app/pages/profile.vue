@@ -12,6 +12,8 @@ type Step =
   | 'vet-type'
   | 'blood-dog-form'
   | 'blood-cat-form'
+  | 'location-modal'
+  | 'location-confirm'
 
 const step = ref<Step>('profile')
 const profileType = ref<ProfileType | null>(null)
@@ -54,6 +56,17 @@ const dogBloodFormValid = computed(() => {
          dogBloodForm.hasBeenTyped &&
          dogBloodForm.isHospitalized
 })
+
+// Location state
+const userLocation = reactive({
+  latitude: -34.6037, // Default to Buenos Aires
+  longitude: -58.3816,
+  address: '',
+  isLoading: false,
+  error: ''
+})
+
+const mapSearchQuery = ref('')
 
 // Options for forms
 const dogBloodTypeOptions = [
@@ -105,24 +118,120 @@ const selectAnimal = (type: AnimalType) => {
 
 const submitCatBloodForm = () => {
   if (!catBloodFormValid.value) return
-  // TODO: Submit to API
-  console.log('Cat blood emergency submitted:', {
+  console.log('Cat blood emergency data:', {
     profileType: profileType.value,
     emergencyType: emergencyType.value,
     animalType: animalType.value,
     ...catBloodForm
   })
+  step.value = 'location-modal'
 }
 
 const submitDogBloodForm = () => {
   if (!dogBloodFormValid.value) return
-  // TODO: Submit to API
-  console.log('Dog blood emergency submitted:', {
+  console.log('Dog blood emergency data:', {
     profileType: profileType.value,
     emergencyType: emergencyType.value,
     animalType: animalType.value,
     ...dogBloodForm
   })
+  step.value = 'location-modal'
+}
+
+const requestLocation = async () => {
+  userLocation.isLoading = true
+  userLocation.error = ''
+
+  if (!navigator.geolocation) {
+    userLocation.error = 'Geolocation is not supported. Please enter your location manually.'
+    userLocation.isLoading = false
+    return
+  }
+
+  try {
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      })
+    })
+
+    userLocation.latitude = position.coords.latitude
+    userLocation.longitude = position.coords.longitude
+    await reverseGeocode(position.coords.latitude, position.coords.longitude)
+  } catch (error: any) {
+    console.error('Geolocation error:', error)
+    if (error.code === 1) {
+      userLocation.error = 'Location permission denied. Please enter your location manually.'
+    } else if (error.code === 2) {
+      userLocation.error = 'Location unavailable. Please enter your location manually.'
+    } else if (error.code === 3) {
+      userLocation.error = 'Location request timed out. Please try again or enter manually.'
+    } else {
+      userLocation.error = 'Could not get your location. Please enter it manually.'
+    }
+  }
+
+  userLocation.isLoading = false
+}
+
+const reverseGeocode = async (lat: number, lng: number) => {
+  try {
+    // Using Nominatim (OpenStreetMap) for free reverse geocoding
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+      { headers: { 'Accept-Language': 'es' } }
+    )
+    const data = await response.json()
+    if (data.display_name) {
+      userLocation.address = data.display_name
+    }
+  } catch (error) {
+    console.error('Reverse geocode error:', error)
+  }
+}
+
+const searchLocation = async () => {
+  if (!mapSearchQuery.value.trim()) return
+
+  userLocation.isLoading = true
+  try {
+    // Using Nominatim for geocoding
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery.value)}&limit=1`,
+      { headers: { 'Accept-Language': 'es' } }
+    )
+    const data = await response.json()
+    if (data.length > 0) {
+      userLocation.latitude = parseFloat(data[0].lat)
+      userLocation.longitude = parseFloat(data[0].lon)
+      userLocation.address = data[0].display_name
+      userLocation.error = ''
+    } else {
+      userLocation.error = 'Location not found. Try a different search.'
+    }
+  } catch (error) {
+    userLocation.error = 'Search failed. Please try again.'
+  }
+  userLocation.isLoading = false
+}
+
+const confirmLocation = () => {
+  // TODO: Submit full request with location to API
+  console.log('Final submission with location:', {
+    profileType: profileType.value,
+    emergencyType: emergencyType.value,
+    animalType: animalType.value,
+    form: animalType.value === 'cat' ? catBloodForm : dogBloodForm,
+    location: {
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+      address: userLocation.address
+    }
+  })
+  // Navigate to success or main app
+  navigateTo('/')
 }
 
 const selectVetType = (type: VetType) => {
@@ -147,6 +256,10 @@ const goBack = () => {
   } else if (step.value === 'blood-dog-form' || step.value === 'blood-cat-form') {
     step.value = 'emergency-animal'
     animalType.value = null
+  } else if (step.value === 'location-modal') {
+    step.value = animalType.value === 'cat' ? 'blood-cat-form' : 'blood-dog-form'
+  } else if (step.value === 'location-confirm') {
+    step.value = 'location-modal'
   }
 }
 
@@ -161,6 +274,8 @@ const stepTitle = computed(() => {
     case 'vet-type': return 'What type of service?'
     case 'blood-dog-form': return 'Dog blood request'
     case 'blood-cat-form': return 'Cat blood request'
+    case 'location-modal': return 'Location needed'
+    case 'location-confirm': return 'Confirm your location'
     default: return ''
   }
 })
@@ -682,6 +797,123 @@ const stepTitle = computed(() => {
               Find nearby help
               <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
             </button>
+          </div>
+
+          <!-- Step: Location Modal -->
+          <div v-else-if="step === 'location-modal'" key="location-modal" class="flex flex-col items-center text-center space-y-6">
+            <div class="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <Icon name="heroicons:map-pin" class="w-10 h-10 text-orange-600 dark:text-orange-400" />
+            </div>
+
+            <div class="space-y-3">
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                We need your location
+              </h2>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              @click="step = 'location-confirm'; requestLocation()"
+              class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition"
+            >
+              Continue
+              <Icon name="heroicons:arrow-right" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Step: Location Confirm -->
+          <div v-else-if="step === 'location-confirm'" key="location-confirm" class="space-y-4">
+            <!-- Loading State -->
+            <div v-if="userLocation.isLoading" class="flex flex-col items-center justify-center py-12 space-y-4">
+              <div class="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+              <p class="text-gray-600 dark:text-gray-400">Getting your location...</p>
+            </div>
+
+            <!-- Map and Location Info -->
+            <template v-else>
+              <!-- Map Container -->
+              <div class="relative w-full h-48 rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700">
+                <iframe
+                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${userLocation.longitude - 0.01},${userLocation.latitude - 0.01},${userLocation.longitude + 0.01},${userLocation.latitude + 0.01}&layer=mapnik&marker=${userLocation.latitude},${userLocation.longitude}`"
+                  class="w-full h-full border-0"
+                  loading="lazy"
+                ></iframe>
+                <a
+                  :href="`https://www.openstreetmap.org/?mlat=${userLocation.latitude}&mlon=${userLocation.longitude}#map=16/${userLocation.latitude}/${userLocation.longitude}`"
+                  target="_blank"
+                  class="absolute bottom-2 right-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                >
+                  <Icon name="heroicons:arrows-pointing-out" class="w-4 h-4" />
+                </a>
+              </div>
+
+              <!-- Current Address -->
+              <div v-if="userLocation.address" class="p-4 rounded-xl bg-gray-100 dark:bg-gray-800">
+                <div class="flex items-start gap-3">
+                  <Icon name="heroicons:map-pin" class="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0" />
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {{ userLocation.address }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Error Message -->
+              <div v-if="userLocation.error" class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <div class="flex items-start gap-3">
+                  <Icon name="heroicons:exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                  <p class="text-sm text-red-700 dark:text-red-300">
+                    {{ userLocation.error }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Search Location -->
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Search a different location
+                </label>
+                <div class="flex gap-2">
+                  <input
+                    v-model="mapSearchQuery"
+                    type="text"
+                    placeholder="Enter address or city"
+                    @keyup.enter="searchLocation"
+                    class="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+                  />
+                  <button
+                    type="button"
+                    @click="searchLocation"
+                    :disabled="userLocation.isLoading"
+                    class="px-4 py-3 inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
+                  >
+                    <Icon name="heroicons:magnifying-glass" class="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Retry Location Button -->
+              <button
+                type="button"
+                @click="requestLocation"
+                class="w-full py-2 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              >
+                <Icon name="heroicons:arrow-path" class="w-4 h-4" />
+                Use my current location
+              </button>
+
+              <!-- Confirm Button -->
+              <button
+                type="button"
+                @click="confirmLocation"
+                class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition"
+              >
+                Confirm location
+                <Icon name="heroicons:check" class="w-4 h-4" />
+              </button>
+            </template>
           </div>
         </Transition>
       </div>
