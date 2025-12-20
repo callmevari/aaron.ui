@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent iOS zoom on input focus */
+html {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+input, select, textarea, button {
+  font-size: 16px !important;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+/* Reset any zoom */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* iOS only */
+    -webkit-text-size-adjust: 100%;
+  }
+}

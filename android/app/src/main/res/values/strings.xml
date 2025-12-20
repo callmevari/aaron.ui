@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aaron.pet</string>
+    <string name="title_activity_main">Aaron.pet</string>
+    <string name="package_name">pet.aaron.app</string>
+    <string name="custom_url_scheme">pet.aaron.app</string>
+</resources>
