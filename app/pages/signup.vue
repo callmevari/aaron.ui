@@ -66,6 +66,7 @@ const handleSubmit = () => {
   if (!formValid.value) return
   // TODO: Submit to API
   console.log('Form submitted:', form)
+  navigateTo('/profile')
 }
 </script>
 
