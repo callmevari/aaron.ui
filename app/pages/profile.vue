@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 type ProfileType = 'emergency' | 'donor' | 'vet'
 type EmergencyType = 'blood' | 'vet'
 type AnimalType = 'cat' | 'dog' | 'both' | 'other'
@@ -168,18 +170,18 @@ const requestNotificationPermission = async () => {
 const searchRadius = ref(100)
 
 // Options for forms
-const dogBloodTypeOptions = [
-  { value: 'dea-positive', label: 'DEA 1.1 Positive' },
-  { value: 'dea-negative', label: 'DEA 1.1 Negative' },
-  { value: 'other', label: 'Other' },
-  { value: 'unknown', label: "I don't know" }
-] as const
+const dogBloodTypeOptions = computed(() => [
+  { value: 'dea-positive', label: t('bloodForm.dogBloodTypes.deaPositive') },
+  { value: 'dea-negative', label: t('bloodForm.dogBloodTypes.deaNegative') },
+  { value: 'other', label: t('bloodForm.dogBloodTypes.other') },
+  { value: 'unknown', label: t('bloodForm.dogBloodTypes.unknown') }
+])
 
-const yesNoOptions = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-  { value: 'unknown', label: "I don't know" }
-] as const
+const yesNoOptions = computed(() => [
+  { value: 'yes', label: t('common.yes') },
+  { value: 'no', label: t('common.no') },
+  { value: 'unknown', label: t('common.unknown') }
+])
 
 // Navigation
 const selectProfile = (type: ProfileType) => {
@@ -242,7 +244,7 @@ const requestLocation = async () => {
   userLocation.error = ''
 
   if (!navigator.geolocation) {
-    userLocation.error = 'Geolocation is not supported. Please enter your location manually.'
+    userLocation.error = t('location.errors.notSupported')
     userLocation.isLoading = false
     return
   }
@@ -262,13 +264,13 @@ const requestLocation = async () => {
   } catch (error: any) {
     console.error('Geolocation error:', error)
     if (error.code === 1) {
-      userLocation.error = 'Location permission denied. Please enter your location manually.'
+      userLocation.error = t('location.errors.denied')
     } else if (error.code === 2) {
-      userLocation.error = 'Location unavailable. Please enter your location manually.'
+      userLocation.error = t('location.errors.unavailable')
     } else if (error.code === 3) {
-      userLocation.error = 'Location request timed out. Please try again or enter manually.'
+      userLocation.error = t('location.errors.timeout')
     } else {
-      userLocation.error = 'Could not get your location. Please enter it manually.'
+      userLocation.error = t('location.errors.generic')
     }
   }
 
@@ -308,10 +310,10 @@ const searchLocation = async () => {
       userLocation.address = data[0].display_name
       userLocation.error = ''
     } else {
-      userLocation.error = 'Location not found. Try a different search.'
+      userLocation.error = t('location.errors.notFound')
     }
   } catch (error) {
-    userLocation.error = 'Search failed. Please try again.'
+    userLocation.error = t('location.errors.searchFailed')
   }
   userLocation.isLoading = false
 }
@@ -388,8 +390,8 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
       notifications: [
         {
           id: Math.floor(Math.random() * 100000),
-          title: `🩸 Blood units available nearby!`,
-          body: `Good news! A blood bank within 15km has compatible blood for ${patientName}. Tap to view details.`,
+          title: `🩸 ${t('notifications.simulated.bloodUnitsTitle')}`,
+          body: t('notifications.simulated.bloodUnitsBody', { petName: patientName }),
           schedule: { at: new Date(now + 10000) }, // 10 seconds
           sound: 'default',
           extra: {
@@ -399,8 +401,8 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
         },
         {
           id: Math.floor(Math.random() * 100000),
-          title: `${animalType === 'cat' ? '🐱' : '🐶'} Matching donors nearby!`,
-          body: `Great news! 3 compatible donors are available within 20km and ready to help ${patientName}.`,
+          title: `${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`,
+          body: t('notifications.simulated.donorsBody', { petName: patientName }),
           schedule: { at: new Date(now + 15000) }, // 15 seconds (5 seconds after first)
           sound: 'default',
           extra: {
@@ -509,16 +511,16 @@ const canGoBack = computed(() => step.value !== 'profile')
 
 const stepTitle = computed(() => {
   switch (step.value) {
-    case 'profile': return 'Which is your profile?'
-    case 'emergency-type': return 'What do you need?'
-    case 'emergency-animal': return 'What type of animal?'
-    case 'donor-animal': return 'What type of animal?'
-    case 'vet-type': return 'What type of service?'
-    case 'blood-dog-form': return 'Dog blood request'
-    case 'blood-cat-form': return 'Cat blood request'
-    case 'location-modal': return 'Location needed'
-    case 'location-confirm': return 'Confirm your location'
-    case 'notifications': return 'Stay connected'
+    case 'profile': return t('profile.title.profile')
+    case 'emergency-type': return t('profile.title.emergencyType')
+    case 'emergency-animal': return t('profile.title.emergencyAnimal')
+    case 'donor-animal': return t('profile.title.donorAnimal')
+    case 'vet-type': return t('profile.title.vetType')
+    case 'blood-dog-form': return t('profile.title.bloodDogForm')
+    case 'blood-cat-form': return t('profile.title.bloodCatForm')
+    case 'location-modal': return t('profile.title.locationModal')
+    case 'location-confirm': return t('profile.title.locationConfirm')
+    case 'notifications': return t('profile.title.notifications')
     default: return ''
   }
 })
@@ -558,8 +560,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:exclamation-triangle" class="w-7 h-7 text-red-600 dark:text-red-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-red-700 dark:text-red-300">I have an emergency</p>
-                <p class="text-sm text-red-600/70 dark:text-red-400/70">Need urgent help now</p>
+                <p class="text-base font-semibold text-red-700 dark:text-red-300">{{ $t('profile.emergency.title') }}</p>
+                <p class="text-sm text-red-600/70 dark:text-red-400/70">{{ $t('profile.emergency.subtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-red-400" />
             </button>
@@ -574,8 +576,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:heart" class="w-7 h-7 text-orange-600 dark:text-orange-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">I'm a donor</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Help save lives</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.donor.title') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.donor.subtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -590,8 +592,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:building-office-2" class="w-7 h-7 text-blue-600 dark:text-blue-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">I'm a vet / blood bank</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Professional services</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vet.title') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vet.subtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -608,8 +610,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:beaker" class="w-7 h-7 text-red-600 dark:text-red-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">I need blood</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Blood transfusion needed</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.needBlood.title') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.needBlood.subtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -623,8 +625,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:map-pin" class="w-7 h-7 text-orange-600 dark:text-orange-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">I need a vet</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Find nearby veterinary</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.needVet.title') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.needVet.subtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -641,7 +643,7 @@ const stepTitle = computed(() => {
                 🐱
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Cat</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.cat') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -655,7 +657,7 @@ const stepTitle = computed(() => {
                 🐶
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Dog</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.dog') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -671,8 +673,8 @@ const stepTitle = computed(() => {
                 🦜
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Other</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Exotic animals</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.other') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.animal.otherSubtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -689,7 +691,7 @@ const stepTitle = computed(() => {
                 🐱
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Cat</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.cat') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -703,7 +705,7 @@ const stepTitle = computed(() => {
                 🐶
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Dog</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.dog') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -717,8 +719,8 @@ const stepTitle = computed(() => {
                 🐱🐶
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Both</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">I have cats and dogs</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.both') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.animal.bothSubtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -735,8 +737,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:user" class="w-7 h-7 text-blue-600 dark:text-blue-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">I'm a veterinary</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Doctor or clinic</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vetType.veterinary') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.veterinarySubtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -750,8 +752,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:building-library" class="w-7 h-7 text-red-600 dark:text-red-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Blood Bank</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Blood storage facility</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vetType.bloodBank') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.bloodBankSubtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -765,8 +767,8 @@ const stepTitle = computed(() => {
                 <Icon name="heroicons:building-office" class="w-7 h-7 text-purple-600 dark:text-purple-400" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">Both</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Veterinary with blood bank</p>
+                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vetType.both') }}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.bothSubtitle') }}</p>
               </div>
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
@@ -777,12 +779,12 @@ const stepTitle = computed(() => {
             <!-- Patient Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Patient name (pet name)
+                {{ $t('bloodForm.patientName') }}
               </label>
               <input
                 v-model="dogBloodForm.patientName"
                 type="text"
-                placeholder="Enter your dog's name"
+                :placeholder="$t('bloodForm.patientNamePlaceholderDog')"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -790,7 +792,7 @@ const stepTitle = computed(() => {
             <!-- Blood Type -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Type of blood
+                {{ $t('bloodForm.bloodType') }}
               </label>
               <div class="grid grid-cols-1 gap-2">
                 <button
@@ -813,7 +815,7 @@ const stepTitle = computed(() => {
             <!-- Has Been Typed -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Has the dog been blood typed?
+                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.dog').toLowerCase() }) }}
               </label>
               <div class="grid grid-cols-3 gap-2">
                 <button
@@ -836,7 +838,7 @@ const stepTitle = computed(() => {
             <!-- Is Hospitalized -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Is the animal currently hospitalized?
+                {{ $t('bloodForm.isHospitalized') }}
               </label>
               <div class="grid grid-cols-3 gap-2">
                 <button
@@ -860,23 +862,23 @@ const stepTitle = computed(() => {
             <div v-if="dogBloodForm.isHospitalized === 'yes'" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Hospital name (optional)
+                  {{ $t('bloodForm.hospitalName') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
                 </label>
                 <input
                   v-model="dogBloodForm.hospitalName"
                   type="text"
-                  placeholder="Enter hospital or clinic name"
+                  :placeholder="$t('bloodForm.hospitalNamePlaceholder')"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Address / City / Country (optional)
+                  {{ $t('bloodForm.hospitalAddress') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
                 </label>
                 <input
                   v-model="dogBloodForm.hospitalAddress"
                   type="text"
-                  placeholder="Enter location"
+                  :placeholder="$t('bloodForm.hospitalAddressPlaceholder')"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -885,12 +887,12 @@ const stepTitle = computed(() => {
             <!-- Comment -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Additional details (optional)
+                {{ $t('bloodForm.additionalDetails') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
               </label>
               <textarea
                 v-model="dogBloodForm.comment"
                 rows="3"
-                placeholder="Add whatever detail you want, like if the animal has a disease"
+                :placeholder="$t('bloodForm.additionalDetailsPlaceholder')"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
               ></textarea>
             </div>
@@ -902,7 +904,7 @@ const stepTitle = computed(() => {
               :disabled="!dogBloodFormValid"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Find nearby help
+              {{ $t('bloodForm.findNearbyHelp') }}
               <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
             </button>
           </div>
@@ -912,12 +914,12 @@ const stepTitle = computed(() => {
             <!-- Patient Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Patient name (pet name)
+                {{ $t('bloodForm.patientName') }}
               </label>
               <input
                 v-model="catBloodForm.patientName"
                 type="text"
-                placeholder="Enter your cat's name"
+                :placeholder="$t('bloodForm.patientNamePlaceholderCat')"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -925,7 +927,7 @@ const stepTitle = computed(() => {
             <!-- Blood Type -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Type of blood
+                {{ $t('bloodForm.bloodType') }}
               </label>
               <div class="grid grid-cols-4 gap-2">
                 <button
@@ -940,7 +942,7 @@ const stepTitle = computed(() => {
                       : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                   ]"
                 >
-                  {{ type === 'unknown' ? "I don't know" : type }}
+                  {{ type === 'unknown' ? $t('common.unknown') : type }}
                 </button>
               </div>
             </div>
@@ -948,7 +950,7 @@ const stepTitle = computed(() => {
             <!-- Has Been Typed -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Has the cat been blood typed?
+                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.cat').toLowerCase() }) }}
               </label>
               <div class="grid grid-cols-3 gap-2">
                 <button
@@ -971,7 +973,7 @@ const stepTitle = computed(() => {
             <!-- Is Hospitalized -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Is the animal currently hospitalized?
+                {{ $t('bloodForm.isHospitalized') }}
               </label>
               <div class="grid grid-cols-3 gap-2">
                 <button
@@ -995,23 +997,23 @@ const stepTitle = computed(() => {
             <div v-if="catBloodForm.isHospitalized === 'yes'" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Hospital name (optional)
+                  {{ $t('bloodForm.hospitalName') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
                 </label>
                 <input
                   v-model="catBloodForm.hospitalName"
                   type="text"
-                  placeholder="Enter hospital or clinic name"
+                  :placeholder="$t('bloodForm.hospitalNamePlaceholder')"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Address / City / Country (optional)
+                  {{ $t('bloodForm.hospitalAddress') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
                 </label>
                 <input
                   v-model="catBloodForm.hospitalAddress"
                   type="text"
-                  placeholder="Enter location"
+                  :placeholder="$t('bloodForm.hospitalAddressPlaceholder')"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -1020,12 +1022,12 @@ const stepTitle = computed(() => {
             <!-- Comment -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Additional details (optional)
+                {{ $t('bloodForm.additionalDetails') }} <span class="text-gray-400">({{ $t('common.optional') }})</span>
               </label>
               <textarea
                 v-model="catBloodForm.comment"
                 rows="3"
-                placeholder="Add whatever detail you want, like if the animal has a disease"
+                :placeholder="$t('bloodForm.additionalDetailsPlaceholder')"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
               ></textarea>
             </div>
@@ -1037,7 +1039,7 @@ const stepTitle = computed(() => {
               :disabled="!catBloodFormValid"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Find nearby help
+              {{ $t('bloodForm.findNearbyHelp') }}
               <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
             </button>
           </div>
@@ -1050,10 +1052,10 @@ const stepTitle = computed(() => {
 
             <div class="space-y-3">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                We need your location
+                {{ $t('location.title') }}
               </h2>
               <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.
+                {{ $t('location.description') }}
               </p>
             </div>
 
@@ -1062,7 +1064,7 @@ const stepTitle = computed(() => {
               @click="step = 'location-confirm'; requestLocation()"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition"
             >
-              Continue
+              {{ $t('common.continue') }}
               <Icon name="heroicons:arrow-right" class="w-4 h-4" />
             </button>
           </div>
@@ -1072,7 +1074,7 @@ const stepTitle = computed(() => {
             <!-- Loading State -->
             <div v-if="userLocation.isLoading" class="flex flex-col items-center justify-center py-12 space-y-4">
               <div class="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
-              <p class="text-gray-600 dark:text-gray-400">Getting your location...</p>
+              <p class="text-gray-600 dark:text-gray-400">{{ $t('location.gettingLocation') }}</p>
             </div>
 
             <!-- Map and Location Info -->
@@ -1116,13 +1118,13 @@ const stepTitle = computed(() => {
               <!-- Search Location -->
               <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Search a different location
+                  {{ $t('location.searchDifferent') }}
                 </label>
                 <div class="flex gap-2">
                   <input
                     v-model="mapSearchQuery"
                     type="text"
-                    placeholder="Enter address or city"
+                    :placeholder="$t('location.searchPlaceholder')"
                     @keyup.enter="searchLocation"
                     class="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                   />
@@ -1144,7 +1146,7 @@ const stepTitle = computed(() => {
                 class="w-full py-2 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
               >
                 <Icon name="heroicons:arrow-path" class="w-4 h-4" />
-                Use my current location
+                {{ $t('location.useCurrentLocation') }}
               </button>
 
               <!-- Confirm Button -->
@@ -1153,7 +1155,7 @@ const stepTitle = computed(() => {
                 @click="confirmLocation"
                 class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition"
               >
-                Confirm location
+                {{ $t('location.confirmLocation') }}
                 <Icon name="heroicons:check" class="w-4 h-4" />
               </button>
             </template>
@@ -1171,7 +1173,7 @@ const stepTitle = computed(() => {
             <!-- Intro Text -->
             <div class="text-center space-y-2">
               <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Get notified instantly when blood becomes available for {{ patientName || 'your pet' }}.
+                {{ $t('notifications.description', { petName: patientName || 'your pet' }) }}
               </p>
             </div>
 
@@ -1185,15 +1187,15 @@ const stepTitle = computed(() => {
               >
                 <template v-if="notificationState.isRequesting">
                   <div class="w-5 h-5 border-2 border-orange-400/30 border-t-orange-600 rounded-full animate-spin"></div>
-                  Requesting permission...
+                  {{ $t('notifications.requestingPermission') }}
                 </template>
                 <template v-else>
                   <Icon name="heroicons:bell" class="w-6 h-6" />
-                  Enable notifications
+                  {{ $t('notifications.enableButton') }}
                 </template>
               </button>
               <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-                We'll only notify you about matching blood availability.
+                {{ $t('notifications.onlyMatchingBlood') }}
               </p>
             </div>
 
@@ -1202,12 +1204,12 @@ const stepTitle = computed(() => {
               <!-- Success Badge -->
               <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                 <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span class="text-sm font-medium text-green-700 dark:text-green-300">Notifications enabled</span>
+                <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $t('notifications.enabled') }}</span>
               </div>
 
               <!-- Subscription Options -->
               <div class="space-y-3">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Notify me when:</p>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('notifications.notifyMeWhen') }}</p>
 
                 <!-- Blood Units Available -->
                 <label
@@ -1224,9 +1226,9 @@ const stepTitle = computed(() => {
                     class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
                   />
                   <div class="flex-1">
-                    <p class="font-medium text-gray-900 dark:text-white">Blood units available</p>
+                    <p class="font-medium text-gray-900 dark:text-white">{{ $t('notifications.bloodUnitsAvailable') }}</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Blood banks have matching blood in stock
+                      {{ $t('notifications.bloodUnitsDescription') }}
                     </p>
                   </div>
                   <Icon name="heroicons:beaker" class="w-5 h-5 text-red-500" />
@@ -1247,9 +1249,9 @@ const stepTitle = computed(() => {
                     class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
                   />
                   <div class="flex-1">
-                    <p class="font-medium text-gray-900 dark:text-white">Donors available</p>
+                    <p class="font-medium text-gray-900 dark:text-white">{{ $t('notifications.donorsAvailable') }}</p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Nearby donors ready to help
+                      {{ $t('notifications.donorsDescription') }}
                     </p>
                   </div>
                   <Icon name="heroicons:heart" class="w-5 h-5 text-orange-500" />
@@ -1262,9 +1264,9 @@ const stepTitle = computed(() => {
               <div class="flex items-start gap-3 py-3 px-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
                 <Icon name="heroicons:exclamation-triangle" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                 <div>
-                  <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Notifications blocked</p>
+                  <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ $t('notifications.blocked') }}</p>
                   <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                    Please enable notifications in your device settings to receive alerts when blood becomes available.
+                    {{ $t('notifications.blockedDescription') }}
                   </p>
                 </div>
               </div>
@@ -1275,7 +1277,7 @@ const stepTitle = computed(() => {
               <div class="flex items-start gap-3 py-3 px-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <Icon name="heroicons:information-circle" class="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Push notifications are not supported in this environment. You can still track your request in the app.
+                  {{ $t('notifications.unsupported') }}
                 </p>
               </div>
             </div>
@@ -1285,7 +1287,7 @@ const stepTitle = computed(() => {
               <div class="flex gap-3">
                 <Icon name="heroicons:information-circle" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  Your request will be sent to <span class="font-medium text-gray-900 dark:text-white">donors, veterinaries, and blood banks</span> within 100km of your location.
+                  {{ $t('notifications.infoMessage', { recipients: $t('notifications.recipients') }) }}
                 </p>
               </div>
             </div>
@@ -1299,16 +1301,16 @@ const stepTitle = computed(() => {
             >
               <template v-if="isSubmitting">
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Sending request...
+                {{ $t('notifications.sendingRequest') }}
               </template>
               <template v-else>
-                Send blood request
+                {{ $t('notifications.sendRequest') }}
                 <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
               </template>
             </button>
 
             <p v-if="isSubmitting" class="text-center text-sm text-orange-600 dark:text-orange-400">
-              Notifying donors and blood banks in your area...
+              {{ $t('notifications.notifyingArea') }}
             </p>
 
           </div>

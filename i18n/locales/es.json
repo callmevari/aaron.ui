@@ -1,0 +1,181 @@
+{
+  "auth": {
+    "emailPlaceholder": "Correo electrónico",
+    "passwordPlaceholder": "Contraseña",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "or": "o",
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "signUpWithGoogle": "Registrarse con Google",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tenés una cuenta?",
+    "hasAccount": "¿Ya tenés una cuenta?",
+    "tagline": "Ayudamos animales en emergencias médicas",
+    "completeFields": "Por favor, completá los campos a continuación",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "passwordHint": "Mín. 8 caracteres, 1 mayúscula, 1 número",
+    "phoneNumber": "Número de teléfono",
+    "acceptTerms": "Acepto la",
+    "privacyPolicy": "Política de Privacidad",
+    "and": "y los",
+    "termsConditions": "Términos y Condiciones",
+    "redirecting": "Redirigiendo...",
+    "comingSoon": "Próximamente"
+  },
+  "common": {
+    "continue": "Continuar",
+    "confirm": "Confirmar",
+    "contact": "Contactar",
+    "unavailable": "No disponible",
+    "available": "Disponible",
+    "reserved": "Reservado",
+    "pending": "Pendiente",
+    "expired": "Vencido",
+    "yes": "Sí",
+    "no": "No",
+    "unknown": "No lo sé",
+    "optional": "opcional",
+    "km": "km",
+    "units": "unidad | unidades"
+  },
+  "profile": {
+    "title": {
+      "profile": "¿Cuál es tu perfil?",
+      "emergencyType": "¿Qué necesitás?",
+      "emergencyAnimal": "¿Qué tipo de animal?",
+      "donorAnimal": "¿Qué tipo de animal?",
+      "vetType": "¿Qué tipo de servicio?",
+      "bloodDogForm": "Solicitud de sangre para perro",
+      "bloodCatForm": "Solicitud de sangre para gato",
+      "locationModal": "Necesitamos tu ubicación",
+      "locationConfirm": "Confirmá tu ubicación",
+      "notifications": "Mantenete conectado"
+    },
+    "emergency": {
+      "title": "Tengo una emergencia",
+      "subtitle": "Necesito ayuda urgente"
+    },
+    "donor": {
+      "title": "Soy donante",
+      "subtitle": "Ayudá a salvar vidas"
+    },
+    "vet": {
+      "title": "Soy veterinario / banco de sangre",
+      "subtitle": "Servicios profesionales"
+    },
+    "needBlood": {
+      "title": "Necesito sangre",
+      "subtitle": "Se necesita transfusión"
+    },
+    "needVet": {
+      "title": "Necesito un veterinario",
+      "subtitle": "Encontrar veterinaria cercana"
+    },
+    "animal": {
+      "cat": "Gato",
+      "dog": "Perro",
+      "both": "Ambos",
+      "bothSubtitle": "Tengo gatos y perros",
+      "other": "Otro",
+      "otherSubtitle": "Animales exóticos"
+    },
+    "vetType": {
+      "veterinary": "Soy veterinario",
+      "veterinarySubtitle": "Médico o clínica",
+      "bloodBank": "Banco de Sangre",
+      "bloodBankSubtitle": "Centro de almacenamiento de sangre",
+      "both": "Ambos",
+      "bothSubtitle": "Veterinaria con banco de sangre"
+    }
+  },
+  "bloodForm": {
+    "patientName": "Nombre del paciente (nombre de la mascota)",
+    "patientNamePlaceholderDog": "Ingresá el nombre de tu perro",
+    "patientNamePlaceholderCat": "Ingresá el nombre de tu gato",
+    "bloodType": "Tipo de sangre",
+    "hasBeenTyped": "¿Se le hizo tipificación de sangre al {animal}?",
+    "isHospitalized": "¿El animal está hospitalizado actualmente?",
+    "hospitalName": "Nombre del hospital",
+    "hospitalAddress": "Dirección / Ciudad / País",
+    "hospitalNamePlaceholder": "Ingresá el nombre del hospital o clínica",
+    "hospitalAddressPlaceholder": "Ingresá la ubicación",
+    "additionalDetails": "Detalles adicionales",
+    "additionalDetailsPlaceholder": "Agregá cualquier detalle que quieras, como si el animal tiene alguna enfermedad",
+    "findNearbyHelp": "Buscar ayuda cercana",
+    "dogBloodTypes": {
+      "deaPositive": "DEA 1.1 Positivo",
+      "deaNegative": "DEA 1.1 Negativo",
+      "other": "Otro",
+      "unknown": "No lo sé"
+    }
+  },
+  "location": {
+    "title": "Necesitamos tu ubicación",
+    "description": "Para conectar tu solicitud con donantes y bancos de sangre cercanos, necesitamos saber tu ubicación. Esto nos ayuda a encontrar ayuda lo más rápido posible.",
+    "gettingLocation": "Obteniendo tu ubicación...",
+    "searchDifferent": "Buscar una ubicación diferente",
+    "searchPlaceholder": "Ingresá dirección o ciudad",
+    "useCurrentLocation": "Usar mi ubicación actual",
+    "confirmLocation": "Confirmar ubicación",
+    "errors": {
+      "notSupported": "La geolocalización no está soportada. Por favor, ingresá tu ubicación manualmente.",
+      "denied": "Permiso de ubicación denegado. Por favor, ingresá tu ubicación manualmente.",
+      "unavailable": "Ubicación no disponible. Por favor, ingresá tu ubicación manualmente.",
+      "timeout": "La solicitud de ubicación expiró. Por favor, intentá de nuevo o ingresala manualmente.",
+      "generic": "No pudimos obtener tu ubicación. Por favor, ingresala manualmente.",
+      "notFound": "Ubicación no encontrada. Probá con otra búsqueda.",
+      "searchFailed": "La búsqueda falló. Por favor, intentá de nuevo."
+    }
+  },
+  "notifications": {
+    "stayConnected": "Mantenete conectado",
+    "description": "Recibí notificaciones instantáneas cuando haya sangre disponible para {petName}.",
+    "enableButton": "Activar notificaciones",
+    "requestingPermission": "Solicitando permiso...",
+    "onlyMatchingBlood": "Solo te notificaremos sobre disponibilidad de sangre compatible.",
+    "enabled": "Notificaciones activadas",
+    "blocked": "Notificaciones bloqueadas",
+    "blockedDescription": "Por favor, habilitá las notificaciones en la configuración de tu dispositivo para recibir alertas cuando haya sangre disponible.",
+    "unsupported": "Las notificaciones push no están soportadas en este entorno. Podés seguir tu solicitud desde la app.",
+    "notifyMeWhen": "Notificarme cuando:",
+    "bloodUnitsAvailable": "Unidades de sangre disponibles",
+    "bloodUnitsDescription": "Los bancos de sangre tienen sangre compatible en stock",
+    "donorsAvailable": "Donantes disponibles",
+    "donorsDescription": "Donantes cercanos listos para ayudar",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
+    "recipients": "donantes, veterinarias y bancos de sangre",
+    "sendRequest": "Enviar solicitud de sangre",
+    "sendingRequest": "Enviando solicitud...",
+    "notifyingArea": "Notificando a donantes y bancos de sangre en tu zona...",
+    "simulated": {
+      "bloodUnitsTitle": "Unidades de sangre disponibles cerca",
+      "bloodUnitsBody": "Un banco de sangre a menos de 15km tiene sangre compatible para {petName}. Tocá para ver detalles.",
+      "donorsTitle": "Donantes compatibles cerca",
+      "donorsBody": "3 donantes compatibles están disponibles a menos de 20km y listos para ayudar a {petName}."
+    }
+  },
+  "request": {
+    "title": "Solicitud de Sangre",
+    "forPet": "Para {petName} ({animalType} - Tipo {bloodType})",
+    "active": "Activa",
+    "bloodUnits": "Unidades de sangre",
+    "donorsNearby": "Donantes cercanos",
+    "tabUnits": "Sangre",
+    "tabDonors": "Donantes",
+    "type": "Tipo {type}",
+    "expiresIn": "Vence en {days}d",
+    "lastDonation": "Desde: {date}",
+    "noBloodUnits": "No se encontraron unidades de sangre cercanas",
+    "noDonors": "No se encontraron donantes cercanos",
+    "broadcastEmergency": "Difundir Solicitud de Emergencia",
+    "productTypes": {
+      "wholeBlood": "Entera",
+      "packedRedBloodCells": "Concentrada"
+    }
+  },
+  "animals": {
+    "cat": "Gato",
+    "dog": "Perro"
+  }
+}

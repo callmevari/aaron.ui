@@ -12,7 +12,25 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxt/icon',
     '@vueuse/nuxt',
+    '@nuxtjs/i18n',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'es', name: 'Español', file: 'es.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+    ],
+    defaultLocale: 'es',
+    lazy: true,
+    langDir: 'locales',
+    strategy: 'no_prefix',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      fallbackLocale: 'es',
+      alwaysRedirect: false,
+    },
+  },
 
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },

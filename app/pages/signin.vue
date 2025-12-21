@@ -43,7 +43,7 @@ const handleSubmit = () => {
         <input
           v-model="form.email"
           type="email"
-          placeholder="Email address"
+          :placeholder="$t('auth.emailPlaceholder')"
           class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
         />
 
@@ -52,7 +52,7 @@ const handleSubmit = () => {
           <input
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
-            placeholder="Password"
+            :placeholder="$t('auth.passwordPlaceholder')"
             class="py-3 px-4 pr-12 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
           />
           <button
@@ -71,13 +71,13 @@ const handleSubmit = () => {
           :disabled="!formValid"
           class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign In
+          {{ $t('auth.signIn') }}
         </button>
 
         <!-- Divider -->
         <div class="flex items-center">
           <div class="flex-1 border-t border-gray-300 dark:border-gray-700"></div>
-          <span class="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
+          <span class="px-4 text-sm text-gray-500 dark:text-gray-400">{{ $t('auth.or') }}</span>
           <div class="flex-1 border-t border-gray-300 dark:border-gray-700"></div>
         </div>
 
@@ -87,25 +87,25 @@ const handleSubmit = () => {
           class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600 transition"
         >
           <Icon name="logos:google-icon" class="w-5 h-5" />
-          Sign In with Google
+          {{ $t('auth.signInWithGoogle') }}
         </button>
       </div>
 
       <!-- Forgot Password -->
       <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
         <a href="#" class="text-orange-600 dark:text-orange-400 hover:underline">
-          Forgot your password?
+          {{ $t('auth.forgotPassword') }}
         </a>
       </p>
 
       <!-- Sign Up Link -->
       <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?
+        {{ $t('auth.noAccount') }}
         <NuxtLink
           to="/signup"
           class="text-orange-600 dark:text-orange-400 hover:underline font-medium"
         >
-          Sign Up
+          {{ $t('auth.signUp') }}
         </NuxtLink>
       </p>
 

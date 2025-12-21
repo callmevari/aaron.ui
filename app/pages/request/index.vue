@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 // Types
 type BloodUnitStatus = 'available' | 'reserved' | 'pending' | 'expired'
 type AnimalType = 'cat' | 'dog'
@@ -209,12 +211,12 @@ const availableDonorsCount = computed(() => {
 })
 
 // Status helpers
-const statusConfig = {
-  available: { label: 'Available', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  reserved: { label: 'Reserved', class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  pending: { label: 'Pending', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  expired: { label: 'Expired', class: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500' }
-}
+const statusConfig = computed(() => ({
+  available: { label: t('common.available'), class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  reserved: { label: t('common.reserved'), class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  pending: { label: t('common.pending'), class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  expired: { label: t('common.expired'), class: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500' }
+}))
 
 // Get route query params
 const route = useRoute()
@@ -232,9 +234,9 @@ const activeTab = ref<'units' | 'donors'>('units')
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 pt-safe">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-bold text-gray-900 dark:text-white">Blood Request</h1>
+          <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('request.title') }}</h1>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            For {{ patientName }} ({{ requestType === 'cat' ? 'Cat' : 'Dog' }} - Type {{ requestBloodType }})
+            {{ $t('request.forPet', { petName: patientName, animalType: requestType === 'cat' ? $t('animals.cat') : $t('animals.dog'), bloodType: requestBloodType }) }}
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -242,7 +244,7 @@ const activeTab = ref<'units' | 'donors'>('units')
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
           </span>
-          <span class="text-sm font-medium text-red-600 dark:text-red-400">Active</span>
+          <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ $t('request.active') }}</span>
         </div>
       </div>
     </div>
@@ -257,7 +259,7 @@ const activeTab = ref<'units' | 'donors'>('units')
             </div>
             <div>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ availableUnitsCount }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Blood units</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('request.bloodUnits') }}</p>
             </div>
           </div>
         </div>
@@ -268,7 +270,7 @@ const activeTab = ref<'units' | 'donors'>('units')
             </div>
             <div>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ availableDonorsCount }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Donors nearby</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('request.donorsNearby') }}</p>
             </div>
           </div>
         </div>
@@ -288,7 +290,7 @@ const activeTab = ref<'units' | 'donors'>('units')
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
           ]"
         >
-          Blood Units
+          {{ $t('request.tabUnits') }}
         </button>
         <button
           type="button"
@@ -300,7 +302,7 @@ const activeTab = ref<'units' | 'donors'>('units')
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
           ]"
         >
-          Donors
+          {{ $t('request.tabDonors') }}
         </button>
       </div>
     </div>
@@ -320,10 +322,10 @@ const activeTab = ref<'units' | 'donors'>('units')
           ]"
         >
           <div class="flex items-start justify-between gap-3">
-            <div class="flex-1">
+            <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
                 <span class="font-semibold text-gray-900 dark:text-white">
-                  Type {{ unit.bloodType }}
+                  {{ $t('request.type', { type: unit.bloodType }) }}
                 </span>
                 <span :class="['text-xs font-medium px-2 py-0.5 rounded-full', statusConfig[unit.status].class]">
                   {{ statusConfig[unit.status].label }}
@@ -336,21 +338,21 @@ const activeTab = ref<'units' | 'donors'>('units')
                   {{ unit.volume }}ml
                 </span>
                 <span v-if="unit.productType" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                  {{ unit.productType }}
+                  {{ unit.productType === 'whole blood' ? $t('request.productTypes.wholeBlood') : $t('request.productTypes.packedRedBloodCells') }}
                 </span>
               </div>
-              <div class="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-500">
-                <span class="flex items-center gap-1">
+              <div class="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-500 flex-nowrap">
+                <span class="flex items-center gap-1 whitespace-nowrap shrink-0">
                   <Icon name="heroicons:map-pin" class="w-3.5 h-3.5" />
-                  {{ unit.distance }} km
+                  {{ unit.distance }}{{ $t('common.km') }}
                 </span>
-                <span v-if="unit.expiresIn" class="flex items-center gap-1">
+                <span v-if="unit.expiresIn" class="flex items-center gap-1 whitespace-nowrap shrink-0">
                   <Icon name="heroicons:clock" class="w-3.5 h-3.5" />
-                  Expires in {{ unit.expiresIn }}d
+                  {{ $t('request.expiresIn', { days: unit.expiresIn }) }}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-1 whitespace-nowrap shrink-0">
                   <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
-                  {{ unit.units }} unit{{ unit.units > 1 ? 's' : '' }}
+                  {{ unit.units }} {{ $t('common.units', unit.units) }}
                 </span>
               </div>
             </div>
@@ -359,7 +361,7 @@ const activeTab = ref<'units' | 'donors'>('units')
               type="button"
               class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition"
             >
-              Contact
+              {{ $t('common.contact') }}
             </button>
             <button
               v-else
@@ -367,14 +369,14 @@ const activeTab = ref<'units' | 'donors'>('units')
               disabled
               class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
             >
-              Unavailable
+              {{ $t('common.unavailable') }}
             </button>
           </div>
         </div>
 
         <div v-if="matchingBloodUnits.length === 0" class="text-center py-12">
           <Icon name="heroicons:beaker" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p class="text-gray-500 dark:text-gray-400">No blood units found nearby</p>
+          <p class="text-gray-500 dark:text-gray-400">{{ $t('request.noBloodUnits') }}</p>
         </div>
       </div>
 
@@ -393,16 +395,16 @@ const activeTab = ref<'units' | 'donors'>('units')
           ]"
         >
           <div class="flex items-start justify-between gap-3">
-            <div class="flex items-start gap-3">
+            <div class="flex items-start gap-3 flex-1 min-w-0">
               <div :class="[
-                'w-12 h-12 rounded-full flex items-center justify-center text-2xl',
+                'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0',
                 donor.isAvailable
                   ? 'bg-orange-100 dark:bg-orange-900/30'
                   : 'bg-gray-100 dark:bg-gray-700'
               ]">
                 {{ requestType === 'cat' ? '🐱' : '🐶' }}
               </div>
-              <div>
+              <div class="min-w-0">
                 <div class="flex items-center gap-2 mb-0.5">
                   <span class="font-semibold text-gray-900 dark:text-white">{{ donor.petName }}</span>
                   <span v-if="donor.isVerified" class="text-blue-500" title="Verified donor">
@@ -410,33 +412,33 @@ const activeTab = ref<'units' | 'donors'>('units')
                   </span>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Type {{ donor.bloodType }}
+                  {{ $t('request.type', { type: donor.bloodType }) }}
                 </p>
                 <div class="flex items-center gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-500">
                   <span class="flex items-center gap-1">
                     <Icon name="heroicons:map-pin" class="w-3.5 h-3.5" />
-                    {{ donor.distance }} km
+                    {{ donor.distance }}{{ $t('common.km') }}
                   </span>
                   <span v-if="donor.lastDonation" class="flex items-center gap-1">
                     <Icon name="heroicons:calendar" class="w-3.5 h-3.5" />
-                    Last: {{ new Date(donor.lastDonation).toLocaleDateString() }}
+                    {{ $t('request.lastDonation', { date: new Date(donor.lastDonation).toLocaleDateString() }) }}
                   </span>
                 </div>
               </div>
             </div>
-            <div class="flex flex-col items-end gap-2">
-              <span v-if="donor.isAvailable" class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                Available
+            <div class="flex flex-col items-end gap-2 shrink-0">
+              <span v-if="donor.isAvailable" class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap">
+                {{ $t('common.available') }}
               </span>
-              <span v-else class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500">
-                Unavailable
+              <span v-else class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-500 whitespace-nowrap">
+                {{ $t('common.unavailable') }}
               </span>
               <button
                 v-if="donor.isAvailable"
                 type="button"
-                class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition"
+                class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition whitespace-nowrap"
               >
-                Contact
+                {{ $t('common.contact') }}
               </button>
             </div>
           </div>
@@ -444,7 +446,7 @@ const activeTab = ref<'units' | 'donors'>('units')
 
         <div v-if="matchingDonors.length === 0" class="text-center py-12">
           <Icon name="heroicons:heart" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p class="text-gray-500 dark:text-gray-400">No donors found nearby</p>
+          <p class="text-gray-500 dark:text-gray-400">{{ $t('request.noDonors') }}</p>
         </div>
       </div>
     </div>
@@ -456,7 +458,7 @@ const activeTab = ref<'units' | 'donors'>('units')
         class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
       >
         <Icon name="heroicons:megaphone" class="w-5 h-5" />
-        Broadcast Emergency Request
+        {{ $t('request.broadcastEmergency') }}
       </button>
     </div>
   </div>

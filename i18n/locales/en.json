@@ -1,0 +1,181 @@
+{
+  "auth": {
+    "emailPlaceholder": "Email address",
+    "passwordPlaceholder": "Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "or": "or",
+    "signInWithGoogle": "Sign In with Google",
+    "signUpWithGoogle": "Sign Up with Google",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "tagline": "We help animals in medical emergencies",
+    "completeFields": "Please, complete the fields below",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "passwordHint": "Min 8 characters, 1 uppercase, 1 number",
+    "phoneNumber": "Phone number",
+    "acceptTerms": "I accept the",
+    "privacyPolicy": "Privacy Policy",
+    "and": "and",
+    "termsConditions": "Terms and Conditions",
+    "redirecting": "Redirecting...",
+    "comingSoon": "Coming soon"
+  },
+  "common": {
+    "continue": "Continue",
+    "confirm": "Confirm",
+    "contact": "Contact",
+    "unavailable": "Unavailable",
+    "available": "Available",
+    "reserved": "Reserved",
+    "pending": "Pending",
+    "expired": "Expired",
+    "yes": "Yes",
+    "no": "No",
+    "unknown": "I don't know",
+    "optional": "optional",
+    "km": "km",
+    "units": "unit | units"
+  },
+  "profile": {
+    "title": {
+      "profile": "Which is your profile?",
+      "emergencyType": "What do you need?",
+      "emergencyAnimal": "What type of animal?",
+      "donorAnimal": "What type of animal?",
+      "vetType": "What type of service?",
+      "bloodDogForm": "Dog blood request",
+      "bloodCatForm": "Cat blood request",
+      "locationModal": "Location needed",
+      "locationConfirm": "Confirm your location",
+      "notifications": "Stay connected"
+    },
+    "emergency": {
+      "title": "I have an emergency",
+      "subtitle": "Need urgent help now"
+    },
+    "donor": {
+      "title": "I'm a donor",
+      "subtitle": "Help save lives"
+    },
+    "vet": {
+      "title": "I'm a vet / blood bank",
+      "subtitle": "Professional services"
+    },
+    "needBlood": {
+      "title": "I need blood",
+      "subtitle": "Blood transfusion needed"
+    },
+    "needVet": {
+      "title": "I need a vet",
+      "subtitle": "Find nearby veterinary"
+    },
+    "animal": {
+      "cat": "Cat",
+      "dog": "Dog",
+      "both": "Both",
+      "bothSubtitle": "I have cats and dogs",
+      "other": "Other",
+      "otherSubtitle": "Exotic animals"
+    },
+    "vetType": {
+      "veterinary": "I'm a veterinary",
+      "veterinarySubtitle": "Doctor or clinic",
+      "bloodBank": "Blood Bank",
+      "bloodBankSubtitle": "Blood storage facility",
+      "both": "Both",
+      "bothSubtitle": "Veterinary with blood bank"
+    }
+  },
+  "bloodForm": {
+    "patientName": "Patient name (pet name)",
+    "patientNamePlaceholderDog": "Enter your dog's name",
+    "patientNamePlaceholderCat": "Enter your cat's name",
+    "bloodType": "Type of blood",
+    "hasBeenTyped": "Has the {animal} been blood typed?",
+    "isHospitalized": "Is the animal currently hospitalized?",
+    "hospitalName": "Hospital name",
+    "hospitalAddress": "Address / City / Country",
+    "hospitalNamePlaceholder": "Enter hospital or clinic name",
+    "hospitalAddressPlaceholder": "Enter location",
+    "additionalDetails": "Additional details",
+    "additionalDetailsPlaceholder": "Add whatever detail you want, like if the animal has a disease",
+    "findNearbyHelp": "Find nearby help",
+    "dogBloodTypes": {
+      "deaPositive": "DEA 1.1 Positive",
+      "deaNegative": "DEA 1.1 Negative",
+      "other": "Other",
+      "unknown": "I don't know"
+    }
+  },
+  "location": {
+    "title": "We need your location",
+    "description": "To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.",
+    "gettingLocation": "Getting your location...",
+    "searchDifferent": "Search a different location",
+    "searchPlaceholder": "Enter address or city",
+    "useCurrentLocation": "Use my current location",
+    "confirmLocation": "Confirm location",
+    "errors": {
+      "notSupported": "Geolocation is not supported. Please enter your location manually.",
+      "denied": "Location permission denied. Please enter your location manually.",
+      "unavailable": "Location unavailable. Please enter your location manually.",
+      "timeout": "Location request timed out. Please try again or enter manually.",
+      "generic": "Could not get your location. Please enter it manually.",
+      "notFound": "Location not found. Try a different search.",
+      "searchFailed": "Search failed. Please try again."
+    }
+  },
+  "notifications": {
+    "stayConnected": "Stay connected",
+    "description": "Get notified instantly when blood becomes available for {petName}.",
+    "enableButton": "Enable notifications",
+    "requestingPermission": "Requesting permission...",
+    "onlyMatchingBlood": "We'll only notify you about matching blood availability.",
+    "enabled": "Notifications enabled",
+    "blocked": "Notifications blocked",
+    "blockedDescription": "Please enable notifications in your device settings to receive alerts when blood becomes available.",
+    "unsupported": "Push notifications are not supported in this environment. You can still track your request in the app.",
+    "notifyMeWhen": "Notify me when:",
+    "bloodUnitsAvailable": "Blood units available",
+    "bloodUnitsDescription": "Blood banks have matching blood in stock",
+    "donorsAvailable": "Donors available",
+    "donorsDescription": "Nearby donors ready to help",
+    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
+    "recipients": "donors, veterinaries, and blood banks",
+    "sendRequest": "Send blood request",
+    "sendingRequest": "Sending request...",
+    "notifyingArea": "Notifying donors and blood banks in your area...",
+    "simulated": {
+      "bloodUnitsTitle": "Blood units available nearby",
+      "bloodUnitsBody": "A blood bank within 15km has compatible blood for {petName}. Tap to view details.",
+      "donorsTitle": "Matching donors nearby",
+      "donorsBody": "3 compatible donors are available within 20km and ready to help {petName}."
+    }
+  },
+  "request": {
+    "title": "Blood Request",
+    "forPet": "For {petName} ({animalType} - Type {bloodType})",
+    "active": "Active",
+    "bloodUnits": "Blood units",
+    "donorsNearby": "Donors nearby",
+    "tabUnits": "Blood Units",
+    "tabDonors": "Donors",
+    "type": "Type {type}",
+    "expiresIn": "Expires in {days}d",
+    "lastDonation": "Last: {date}",
+    "noBloodUnits": "No blood units found nearby",
+    "noDonors": "No donors found nearby",
+    "broadcastEmergency": "Broadcast Emergency Request",
+    "productTypes": {
+      "wholeBlood": "whole blood",
+      "packedRedBloodCells": "packed red blood cells"
+    }
+  },
+  "animals": {
+    "cat": "Cat",
+    "dog": "Dog"
+  }
+}

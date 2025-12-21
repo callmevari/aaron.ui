@@ -90,7 +90,7 @@ const handleSubmit = () => {
 
           <!-- Tagline -->
           <p class="text-center text-gray-600 dark:text-gray-400 mb-8 text-lg">
-            A place to help people connect on pet emergencies
+            {{ $t('auth.tagline') }}
           </p>
 
           <!-- Sign Up Buttons -->
@@ -100,13 +100,13 @@ const handleSubmit = () => {
               @click="step = 'form'"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition"
             >
-              Sign Up
+              {{ $t('auth.signUp') }}
             </button>
 
             <!-- Divider -->
             <div class="flex items-center">
               <div class="flex-1 border-t border-gray-300 dark:border-gray-700"></div>
-              <span class="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
+              <span class="px-4 text-sm text-gray-500 dark:text-gray-400">{{ $t('auth.or') }}</span>
               <div class="flex-1 border-t border-gray-300 dark:border-gray-700"></div>
             </div>
 
@@ -115,18 +115,18 @@ const handleSubmit = () => {
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600 transition"
             >
               <Icon name="logos:google-icon" class="w-5 h-5" />
-              Sign Up with Google
+              {{ $t('auth.signUpWithGoogle') }}
             </button>
           </div>
 
           <!-- Sign In Link -->
           <p class="mt-8 text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?
+            {{ $t('auth.hasAccount') }}
             <NuxtLink
               to="/signin"
               class="text-orange-600 dark:text-orange-400 hover:underline font-medium"
             >
-              Sign In
+              {{ $t('auth.signIn') }}
             </NuxtLink>
           </p>
 
@@ -149,7 +149,7 @@ const handleSubmit = () => {
             <Icon name="heroicons:arrow-left" class="w-6 h-6" />
           </button>
           <h1 class="flex-1 text-center text-lg font-semibold text-gray-900 dark:text-white pr-8">
-            Sign Up
+            {{ $t('auth.signUp') }}
           </h1>
         </div>
 
@@ -157,7 +157,7 @@ const handleSubmit = () => {
         <div class="flex-1 overflow-y-auto px-4 py-6">
           <div class="max-w-sm mx-auto space-y-5">
             <p class="text-gray-600 dark:text-gray-400 text-sm">
-              Please, complete the fields below
+              {{ $t('auth.completeFields') }}
             </p>
 
             <!-- First Name & Last Name -->
@@ -165,13 +165,13 @@ const handleSubmit = () => {
               <input
                 v-model="form.firstName"
                 type="text"
-                placeholder="First name"
+                :placeholder="$t('auth.firstName')"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
               <input
                 v-model="form.lastName"
                 type="text"
-                placeholder="Last name"
+                :placeholder="$t('auth.lastName')"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -180,7 +180,7 @@ const handleSubmit = () => {
             <input
               v-model="form.email"
               type="email"
-              placeholder="Email address"
+              :placeholder="$t('auth.emailPlaceholder')"
               class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
             />
 
@@ -190,7 +190,7 @@ const handleSubmit = () => {
                 <input
                   v-model="form.password"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="Password"
+                  :placeholder="$t('auth.passwordPlaceholder')"
                   class="py-3 px-4 pr-12 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
                 <button
@@ -202,7 +202,7 @@ const handleSubmit = () => {
                 </button>
               </div>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Min 8 characters, 1 uppercase, 1 number
+                {{ $t('auth.passwordHint') }}
               </p>
             </div>
 
@@ -221,7 +221,7 @@ const handleSubmit = () => {
                 @input="onPhoneInput"
                 type="tel"
                 inputmode="numeric"
-                placeholder="Phone number"
+                :placeholder="$t('auth.phoneNumber')"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -234,10 +234,10 @@ const handleSubmit = () => {
                 class="mt-1 shrink-0 border-gray-300 dark:border-gray-700 rounded text-orange-600 focus:ring-orange-500 dark:bg-gray-800 dark:checked:bg-orange-600"
               />
               <span class="text-sm text-gray-600 dark:text-gray-400">
-                I accept the
-                <a href="#" class="text-orange-600 dark:text-orange-400 hover:underline">Privacy Policy</a>
-                and
-                <a href="#" class="text-orange-600 dark:text-orange-400 hover:underline">Terms and Conditions</a>
+                {{ $t('auth.acceptTerms') }}
+                <a href="#" class="text-orange-600 dark:text-orange-400 hover:underline">{{ $t('auth.privacyPolicy') }}</a>
+                {{ $t('auth.and') }}
+                <a href="#" class="text-orange-600 dark:text-orange-400 hover:underline">{{ $t('auth.termsConditions') }}</a>
               </span>
             </label>
           </div>
@@ -252,7 +252,7 @@ const handleSubmit = () => {
               :disabled="!formValid"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Up
+              {{ $t('auth.signUp') }}
             </button>
           </div>
         </div>
