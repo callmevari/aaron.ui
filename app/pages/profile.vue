@@ -371,6 +371,52 @@ const mockApi = {
   }
 }
 
+// Schedule simulated notifications (for testing purposes)
+const scheduleSimulatedNotifications = async (patientName: string, animalType: string) => {
+  try {
+    const { Capacitor } = await import('@capacitor/core')
+    if (!Capacitor.isNativePlatform()) {
+      console.log('📱 Simulated notifications skipped (not on native platform)')
+      return
+    }
+
+    const { LocalNotifications } = await import('@capacitor/local-notifications')
+
+    const now = Date.now()
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Math.floor(Math.random() * 100000),
+          title: `🩸 Blood units available nearby!`,
+          body: `Good news! A blood bank within 15km has compatible blood for ${patientName}. Tap to view details.`,
+          schedule: { at: new Date(now + 10000) }, // 10 seconds
+          sound: 'default',
+          extra: {
+            type: 'BLOOD_UNIT_AVAILABLE',
+            animalType: animalType
+          }
+        },
+        {
+          id: Math.floor(Math.random() * 100000),
+          title: `${animalType === 'cat' ? '🐱' : '🐶'} Matching donors nearby!`,
+          body: `Great news! 3 compatible donors are available within 20km and ready to help ${patientName}.`,
+          schedule: { at: new Date(now + 15000) }, // 15 seconds (5 seconds after first)
+          sound: 'default',
+          extra: {
+            type: 'DONOR_AVAILABLE',
+            animalType: animalType
+          }
+        }
+      ]
+    })
+
+    console.log('📱 Simulated notifications scheduled: 10s (blood units) and 15s (donors)')
+  } catch (error) {
+    console.error('Failed to schedule simulated notifications:', error)
+  }
+}
+
 const finalSubmit = async () => {
   isSubmitting.value = true
 
@@ -403,6 +449,9 @@ const finalSubmit = async () => {
       if (notificationState.permissionStatus === 'granted') {
         await mockApi.subscribeToNotifications(notificationState.subscriptions, filters)
         console.log('✅ Subscribed to blood availability notifications')
+
+        // 3. Schedule simulated notifications for testing (10s and 15s delay)
+        await scheduleSimulatedNotifications(form.patientName, animalType.value || 'pet')
       }
 
       // Navigate to request results
@@ -1262,16 +1311,6 @@ const stepTitle = computed(() => {
               Notifying donors and blood banks in your area...
             </p>
 
-            <!-- Skip notifications option -->
-            <button
-              v-if="notificationState.permissionStatus === 'default'"
-              type="button"
-              @click="finalSubmit"
-              :disabled="isSubmitting"
-              class="w-full text-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition"
-            >
-              Skip for now
-            </button>
           </div>
         </Transition>
       </div>

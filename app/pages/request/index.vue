@@ -3,6 +3,8 @@
 type BloodUnitStatus = 'available' | 'reserved' | 'pending' | 'expired'
 type AnimalType = 'cat' | 'dog'
 
+type BloodProductType = 'whole blood' | 'packed red blood cells'
+
 interface BloodUnit {
   id: string
   animalType: AnimalType
@@ -12,6 +14,8 @@ interface BloodUnit {
   distance: number // km
   expiresIn?: number // days
   units: number
+  volume?: number // ml (optional)
+  productType?: BloodProductType // optional
 }
 
 interface Donor {
@@ -35,7 +39,9 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'Central Veterinary Blood Bank',
     distance: 12,
     expiresIn: 21,
-    units: 2
+    units: 2,
+    volume: 50,
+    productType: 'whole blood'
   },
   {
     id: '2',
@@ -45,7 +51,9 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'Pet Emergency Center',
     distance: 28,
     expiresIn: 14,
-    units: 1
+    units: 1,
+    volume: 25,
+    productType: 'packed red blood cells'
   },
   {
     id: '3',
@@ -55,7 +63,9 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'Animal Care Hospital',
     distance: 35,
     expiresIn: 7,
-    units: 1
+    units: 1,
+    volume: 60
+    // no productType - optional
   },
   {
     id: '4',
@@ -65,6 +75,7 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'University Vet Clinic',
     distance: 45,
     units: 1
+    // no volume or productType - both optional
   },
   {
     id: '5',
@@ -74,7 +85,9 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'Central Veterinary Blood Bank',
     distance: 12,
     expiresIn: 28,
-    units: 3
+    units: 3,
+    volume: 250,
+    productType: 'whole blood'
   },
   {
     id: '6',
@@ -84,7 +97,9 @@ const bloodUnits = ref<BloodUnit[]>([
     provider: 'Metro Animal Hospital',
     distance: 18,
     expiresIn: 10,
-    units: 2
+    units: 2,
+    productType: 'packed red blood cells'
+    // no volume - optional
   }
 ])
 
@@ -315,6 +330,15 @@ const activeTab = ref<'units' | 'donors'>('units')
                 </span>
               </div>
               <p class="text-sm text-gray-600 dark:text-gray-400">{{ unit.provider }}</p>
+              <!-- Volume and Product Type -->
+              <div v-if="unit.volume || unit.productType" class="flex items-center gap-2 mt-1.5 flex-wrap">
+                <span v-if="unit.volume" class="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                  {{ unit.volume }}ml
+                </span>
+                <span v-if="unit.productType" class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                  {{ unit.productType }}
+                </span>
+              </div>
               <div class="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-500">
                 <span class="flex items-center gap-1">
                   <Icon name="heroicons:map-pin" class="w-3.5 h-3.5" />
