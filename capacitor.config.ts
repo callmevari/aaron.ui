@@ -12,6 +12,12 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     preferredContentMode: 'mobile',
   },
+  plugins: {
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+  },
 }
 
 export default config

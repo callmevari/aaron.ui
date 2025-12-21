@@ -31,7 +31,7 @@ const catBloodForm = reactive({
   hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
   isHospitalized: '' as '' | 'yes' | 'no' | 'unknown',
   hospitalName: '',
-  hospitalAddress: 'Argentina',
+  hospitalAddress: '',
   comment: ''
 })
 
@@ -49,7 +49,7 @@ const dogBloodForm = reactive({
   hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
   isHospitalized: '' as '' | 'yes' | 'no' | 'unknown',
   hospitalName: '',
-  hospitalAddress: 'Argentina',
+  hospitalAddress: '',
   comment: ''
 })
 
@@ -74,12 +74,7 @@ const mapSearchQuery = ref('')
 // Notification state
 const notificationState = reactive({
   permissionStatus: 'default' as NotificationPermission | 'unsupported',
-  isRequesting: false,
-  // Subscription preferences (for blood seekers: what they want to be notified about)
-  subscriptions: {
-    bloodUnitsAvailable: true, // Notify when matching blood units are available
-    donorsAvailable: true      // Notify when matching donors are available
-  }
+  isRequesting: false
 })
 
 // Get patient name from form
@@ -358,9 +353,8 @@ const mockApi = {
   },
 
   // Subscribe user to receive notifications about available blood/donors
-  async subscribeToNotifications(subscriptions: any, filters: any) {
+  async subscribeToNotifications(filters: any) {
     console.log('📱 Registering notification subscriptions...')
-    console.log('Subscriptions:', subscriptions)
     console.log('Filters:', filters)
 
     // In production: register with push notification service (FCM/APNs)
@@ -377,8 +371,26 @@ const mockApi = {
 const scheduleSimulatedNotifications = async (patientName: string, animalType: string) => {
   try {
     const { Capacitor } = await import('@capacitor/core')
+
+    // Web fallback using Web Notifications API
     if (!Capacitor.isNativePlatform()) {
-      console.log('📱 Simulated notifications skipped (not on native platform)')
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const iconUrl = `${window.location.origin}/img/app-icon.png`
+
+        setTimeout(() => {
+          new Notification(`🩸 ${t('notifications.simulated.bloodUnitsTitle')}`, {
+            body: t('notifications.simulated.bloodUnitsBody', { petName: patientName }),
+            icon: iconUrl
+          })
+        }, 10000)
+
+        setTimeout(() => {
+          new Notification(`${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`, {
+            body: t('notifications.simulated.donorsBody', { petName: patientName }),
+            icon: iconUrl
+          })
+        }, 15000)
+      }
       return
     }
 
@@ -449,7 +461,7 @@ const finalSubmit = async () => {
 
       // 2. Subscribe this user to receive notifications about available blood/donors
       if (notificationState.permissionStatus === 'granted') {
-        await mockApi.subscribeToNotifications(notificationState.subscriptions, filters)
+        await mockApi.subscribeToNotifications(filters)
         console.log('✅ Subscribed to blood availability notifications')
 
         // 3. Schedule simulated notifications for testing (10s and 15s delay)
@@ -785,6 +797,11 @@ const stepTitle = computed(() => {
                 v-model="dogBloodForm.patientName"
                 type="text"
                 :placeholder="$t('bloodForm.patientNamePlaceholderDog')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -868,6 +885,11 @@ const stepTitle = computed(() => {
                   v-model="dogBloodForm.hospitalName"
                   type="text"
                   :placeholder="$t('bloodForm.hospitalNamePlaceholder')"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -879,6 +901,11 @@ const stepTitle = computed(() => {
                   v-model="dogBloodForm.hospitalAddress"
                   type="text"
                   :placeholder="$t('bloodForm.hospitalAddressPlaceholder')"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -893,6 +920,11 @@ const stepTitle = computed(() => {
                 v-model="dogBloodForm.comment"
                 rows="3"
                 :placeholder="$t('bloodForm.additionalDetailsPlaceholder')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
               ></textarea>
             </div>
@@ -900,7 +932,8 @@ const stepTitle = computed(() => {
             <!-- Submit Button -->
             <button
               type="button"
-              @click="submitDogBloodForm"
+              @mousedown.prevent="submitDogBloodForm"
+              @touchend.prevent="submitDogBloodForm"
               :disabled="!dogBloodFormValid"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -920,6 +953,11 @@ const stepTitle = computed(() => {
                 v-model="catBloodForm.patientName"
                 type="text"
                 :placeholder="$t('bloodForm.patientNamePlaceholderCat')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -1003,6 +1041,11 @@ const stepTitle = computed(() => {
                   v-model="catBloodForm.hospitalName"
                   type="text"
                   :placeholder="$t('bloodForm.hospitalNamePlaceholder')"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -1014,6 +1057,11 @@ const stepTitle = computed(() => {
                   v-model="catBloodForm.hospitalAddress"
                   type="text"
                   :placeholder="$t('bloodForm.hospitalAddressPlaceholder')"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
                   class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                 />
               </div>
@@ -1028,6 +1076,11 @@ const stepTitle = computed(() => {
                 v-model="catBloodForm.comment"
                 rows="3"
                 :placeholder="$t('bloodForm.additionalDetailsPlaceholder')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
               ></textarea>
             </div>
@@ -1035,7 +1088,8 @@ const stepTitle = computed(() => {
             <!-- Submit Button -->
             <button
               type="button"
-              @click="submitCatBloodForm"
+              @mousedown.prevent="submitCatBloodForm"
+              @touchend.prevent="submitCatBloodForm"
               :disabled="!catBloodFormValid"
               class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -1126,6 +1180,11 @@ const stepTitle = computed(() => {
                     type="text"
                     :placeholder="$t('location.searchPlaceholder')"
                     @keyup.enter="searchLocation"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    data-form-type="other"
                     class="flex-1 py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
                   />
                   <button
@@ -1202,61 +1261,14 @@ const stepTitle = computed(() => {
             <!-- Permission Granted -->
             <div v-else-if="notificationState.permissionStatus === 'granted'" class="space-y-4">
               <!-- Success Badge -->
-              <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $t('notifications.enabled') }}</span>
+              <div class="flex items-center justify-center gap-2 py-4 px-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-600 dark:text-green-400" />
+                <span class="text-base font-medium text-green-700 dark:text-green-300">{{ $t('notifications.enabled') }}</span>
               </div>
 
-              <!-- Subscription Options -->
-              <div class="space-y-3">
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('notifications.notifyMeWhen') }}</p>
-
-                <!-- Blood Units Available -->
-                <label
-                  :class="[
-                    'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
-                    notificationState.subscriptions.bloodUnitsAvailable
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                  ]"
-                >
-                  <input
-                    v-model="notificationState.subscriptions.bloodUnitsAvailable"
-                    type="checkbox"
-                    class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
-                  />
-                  <div class="flex-1">
-                    <p class="font-medium text-gray-900 dark:text-white">{{ $t('notifications.bloodUnitsAvailable') }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ $t('notifications.bloodUnitsDescription') }}
-                    </p>
-                  </div>
-                  <Icon name="heroicons:beaker" class="w-5 h-5 text-red-500" />
-                </label>
-
-                <!-- Donors Available -->
-                <label
-                  :class="[
-                    'flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all',
-                    notificationState.subscriptions.donorsAvailable
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                  ]"
-                >
-                  <input
-                    v-model="notificationState.subscriptions.donorsAvailable"
-                    type="checkbox"
-                    class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
-                  />
-                  <div class="flex-1">
-                    <p class="font-medium text-gray-900 dark:text-white">{{ $t('notifications.donorsAvailable') }}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ $t('notifications.donorsDescription') }}
-                    </p>
-                  </div>
-                  <Icon name="heroicons:heart" class="w-5 h-5 text-orange-500" />
-                </label>
-              </div>
+              <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+                {{ $t('notifications.enabledDescription') }}
+              </p>
             </div>
 
             <!-- Permission Denied -->

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import logoLight from '~/assets/img/logo.png'
-import logoDark from '~/assets/img/logo-dark.png'
+import logoLight from '~/assets/img/new-logo.png'
+import logoDark from '~/assets/img/new-logo-dark.png'
 
 const currentYear = new Date().getFullYear()
 
@@ -44,6 +44,11 @@ const handleSubmit = () => {
           v-model="form.email"
           type="email"
           :placeholder="$t('auth.emailPlaceholder')"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-form-type="other"
           class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
         />
 
@@ -53,6 +58,11 @@ const handleSubmit = () => {
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             :placeholder="$t('auth.passwordPlaceholder')"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
             class="py-3 px-4 pr-12 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
           />
           <button

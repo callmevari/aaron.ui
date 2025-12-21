@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import logoLight from '~/assets/img/logo.png'
-import logoDark from '~/assets/img/logo-dark.png'
+import logoLight from '~/assets/img/new-logo.png'
+import logoDark from '~/assets/img/new-logo-dark.png'
 
 const currentYear = new Date().getFullYear()
 const step = useState<'initial' | 'form'>('signup-step', () => 'initial')
@@ -16,7 +16,7 @@ const form = reactive({
   acceptTerms: false
 })
 
-const showPassword = ref(false)
+const showPassword = ref(true)
 
 // Country codes with flags
 const countryCodes = [
@@ -37,6 +37,20 @@ const countryCodes = [
   { code: '+61', flag: '🇦🇺', name: 'AU' },
 ]
 
+// Track touched fields for validation display
+const touched = reactive({
+  email: false,
+  password: false
+})
+
+// Email validation
+const emailValid = computed(() => {
+  const email = form.email.trim()
+  if (!email) return false
+  // Basic email regex
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+})
+
 // Password validation
 const passwordValid = computed(() => {
   const p = form.password
@@ -45,6 +59,10 @@ const passwordValid = computed(() => {
          /[A-Z]/.test(p) &&
          /[0-9]/.test(p)
 })
+
+// Show validation errors only after field is touched and has content
+const showEmailError = computed(() => touched.email && form.email.length > 0 && !emailValid.value)
+const showPasswordError = computed(() => touched.password && form.password.length > 0 && !passwordValid.value)
 
 // Phone input - only numbers
 const onPhoneInput = (e: Event) => {
@@ -56,7 +74,7 @@ const onPhoneInput = (e: Event) => {
 const formValid = computed(() => {
   return form.firstName.trim() &&
          form.lastName.trim() &&
-         form.email.trim() &&
+         emailValid.value &&
          passwordValid.value &&
          form.phone.trim() &&
          form.acceptTerms
@@ -166,12 +184,22 @@ const handleSubmit = () => {
                 v-model="form.firstName"
                 type="text"
                 :placeholder="$t('auth.firstName')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
               <input
                 v-model="form.lastName"
                 type="text"
                 :placeholder="$t('auth.lastName')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>
@@ -181,7 +209,18 @@ const handleSubmit = () => {
               v-model="form.email"
               type="email"
               :placeholder="$t('auth.emailPlaceholder')"
-              class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-form-type="other"
+              @blur="touched.email = true"
+              :class="[
+                'py-3 px-4 block w-full border rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500',
+                showEmailError
+                  ? 'border-red-300 dark:border-red-500 focus:border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500'
+              ]"
             />
 
             <!-- Password -->
@@ -191,7 +230,18 @@ const handleSubmit = () => {
                   v-model="form.password"
                   :type="showPassword ? 'text' : 'password'"
                   :placeholder="$t('auth.passwordPlaceholder')"
-                  class="py-3 px-4 pr-12 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
+                  @blur="touched.password = true"
+                  :class="[
+                    'py-3 px-4 pr-12 block w-full border rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500',
+                    showPasswordError
+                      ? 'border-red-300 dark:border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500'
+                  ]"
                 />
                 <button
                   type="button"
@@ -201,7 +251,7 @@ const handleSubmit = () => {
                   <Icon :name="showPassword ? 'heroicons:eye-slash' : 'heroicons:eye'" class="w-5 h-5" />
                 </button>
               </div>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p :class="['mt-1 text-xs', showPasswordError ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400']">
                 {{ $t('auth.passwordHint') }}
               </p>
             </div>
@@ -210,6 +260,7 @@ const handleSubmit = () => {
             <div class="flex gap-2">
               <select
                 v-model="form.countryCode"
+                autocomplete="off"
                 class="py-3 px-3 block w-28 border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-orange-500 focus:ring-orange-500"
               >
                 <option v-for="country in countryCodes" :key="country.code" :value="country.code">
@@ -222,6 +273,9 @@ const handleSubmit = () => {
                 type="tel"
                 inputmode="numeric"
                 :placeholder="$t('auth.phoneNumber')"
+                autocomplete="off"
+                autocorrect="off"
+                data-form-type="other"
                 class="flex-1 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
             </div>

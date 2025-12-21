@@ -4,6 +4,63 @@ const { t } = useI18n()
 // Types
 type BloodUnitStatus = 'available' | 'reserved' | 'pending' | 'expired'
 type AnimalType = 'cat' | 'dog'
+type RequestStatus = 'active' | 'expired' | 'cancelled'
+
+// Mock request state - simulates a request created 30 minutes ago (for demo purposes)
+const requestCreatedAt = ref(Date.now() - 30 * 60 * 1000) // 30 min ago
+const requestStatus = ref<RequestStatus>('active')
+const REQUEST_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours
+
+// Countdown timer
+const timeRemaining = ref('')
+const isExpired = computed(() => requestStatus.value === 'expired')
+const isCancelled = computed(() => requestStatus.value === 'cancelled')
+
+const updateCountdown = () => {
+  if (requestStatus.value !== 'active') return
+
+  const elapsed = Date.now() - requestCreatedAt.value
+  const remaining = REQUEST_DURATION_MS - elapsed
+
+  if (remaining <= 0) {
+    requestStatus.value = 'expired'
+    timeRemaining.value = '0h 0m'
+    return
+  }
+
+  const hours = Math.floor(remaining / (60 * 60 * 1000))
+  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000))
+  timeRemaining.value = `${hours}h ${minutes}m`
+}
+
+// Update countdown every minute
+let countdownInterval: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  updateCountdown()
+  countdownInterval = setInterval(updateCountdown, 60000) // Update every minute
+})
+
+onUnmounted(() => {
+  if (countdownInterval) clearInterval(countdownInterval)
+})
+
+// Actions
+const extendRequest = () => {
+  requestCreatedAt.value = Date.now()
+  requestStatus.value = 'active'
+  updateCountdown()
+}
+
+const cancelRequest = () => {
+  requestStatus.value = 'cancelled'
+}
+
+const rebroadcastRequest = () => {
+  requestCreatedAt.value = Date.now()
+  requestStatus.value = 'active'
+  updateCountdown()
+}
 
 type BloodProductType = 'whole blood' | 'packed red blood cells'
 
@@ -229,9 +286,9 @@ const activeTab = ref<'units' | 'donors'>('units')
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 md:mx-24 lg:mx-48">
     <!-- Header -->
-    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 pt-safe">
+    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 pt-safe md:mt-4">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('request.title') }}</h1>
@@ -308,7 +365,7 @@ const activeTab = ref<'units' | 'donors'>('units')
     </div>
 
     <!-- Content -->
-    <div class="flex-1 px-4 py-4 overflow-y-auto pb-safe">
+    <div class="flex-1 px-4 py-4 overflow-y-auto pb-40">
       <!-- Blood Units List -->
       <div v-if="activeTab === 'units'" class="space-y-3">
         <div
@@ -452,14 +509,78 @@ const activeTab = ref<'units' | 'donors'>('units')
     </div>
 
     <!-- Bottom Action -->
-    <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 pb-safe">
-      <button
-        type="button"
-        class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
-      >
-        <Icon name="heroicons:megaphone" class="w-5 h-5" />
-        {{ $t('request.broadcastEmergency') }}
-      </button>
+    <div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 pb-safe md:left-24 md:right-24 lg:left-48 lg:right-48">
+      <!-- Active Request Status -->
+      <div v-if="requestStatus === 'active'" class="space-y-3">
+        <!-- Status with countdown -->
+        <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+            </span>
+            <span class="text-sm font-medium text-orange-700 dark:text-orange-300">{{ $t('request.requestActive') }}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-sm text-orange-600 dark:text-orange-400">
+            <Icon name="heroicons:clock" class="w-4 h-4" />
+            <span>{{ $t('request.expiresIn2', { time: timeRemaining }) }}</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-3">
+          <button
+            type="button"
+            @click="extendRequest"
+            class="flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+          >
+            <Icon name="heroicons:arrow-path" class="w-4 h-4" />
+            {{ $t('request.extend24h') }}
+          </button>
+          <button
+            type="button"
+            @click="cancelRequest"
+            class="flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+          >
+            <Icon name="heroicons:x-mark" class="w-4 h-4" />
+            {{ $t('request.cancelRequest') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Expired Request -->
+      <div v-else-if="requestStatus === 'expired'" class="space-y-3">
+        <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+          <Icon name="heroicons:exclamation-triangle" class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+          <span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">{{ $t('request.requestExpired') }}</span>
+        </div>
+
+        <button
+          type="button"
+          @click="rebroadcastRequest"
+          class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+        >
+          <Icon name="heroicons:megaphone" class="w-5 h-5" />
+          {{ $t('request.rebroadcast') }}
+        </button>
+      </div>
+
+      <!-- Cancelled Request -->
+      <div v-else-if="requestStatus === 'cancelled'" class="space-y-3">
+        <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+          <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-600 dark:text-green-400" />
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('request.requestResolved') }}</span>
+        </div>
+
+        <button
+          type="button"
+          @click="rebroadcastRequest"
+          class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
+        >
+          <Icon name="heroicons:megaphone" class="w-5 h-5" />
+          {{ $t('request.newRequest') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

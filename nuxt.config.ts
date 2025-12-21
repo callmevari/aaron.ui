@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
 
+  // Disable SSR for Capacitor mobile app - prevents hydration mismatches
+  ssr: false,
+
   future: {
     compatibilityVersion: 4,
   },
