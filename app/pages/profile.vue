@@ -100,9 +100,7 @@ const getSubscriptionFilters = () => {
   }
 }
 
-// Request notification permission
-// Note: Full push notifications require Firebase (Android) / APNs (iOS) setup
-// For now, we request permission and note that push will be configured later
+// Request native notification permission
 const requestNotificationPermission = async () => {
   notificationState.isRequesting = true
 
@@ -117,18 +115,32 @@ const requestNotificationPermission = async () => {
     }
 
     if (isNative) {
-      // On native platforms, we'll use the UserNotifications framework
-      // This requires additional setup (Firebase/APNs) for real push notifications
-      // For now, we'll mark as granted and configure push later
-      console.log('📱 Native platform detected - push notifications require Firebase/APNs setup')
-      console.log('📝 Marking notifications as enabled for this session')
-      notificationState.permissionStatus = 'granted'
-      return true
+      // Native platform: use Capacitor Push Notifications
+      // This triggers the native iOS/Android permission dialog
+      const { PushNotifications } = await import('@capacitor/push-notifications')
+
+      // Request permission (this triggers the native dialog)
+      console.log('📱 Requesting push notification permission...')
+      const permStatus = await PushNotifications.requestPermissions()
+      console.log('📱 Permission result:', permStatus.receive)
+
+      if (permStatus.receive === 'granted') {
+        // Register for push notifications after permission granted
+        console.log('📱 Registering for push notifications...')
+        await PushNotifications.register()
+        notificationState.permissionStatus = 'granted'
+        console.log('✅ Push notification permission granted and registered')
+        return true
+      } else {
+        notificationState.permissionStatus = 'denied'
+        console.log('❌ Push notification permission denied')
+        return false
+      }
     } else {
       // Web platform: use browser Notification API
       if (!('Notification' in window)) {
         notificationState.permissionStatus = 'unsupported'
-        console.warn('Push notifications not supported in this browser')
+        console.warn('Notifications not supported in this browser')
         return false
       }
 

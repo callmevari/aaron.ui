@@ -62,3 +62,12 @@ How to proceed
 Wait for explicit instructions before implementing anything.
 Each instruction will describe one specific feature to build.
 Do not implement features that are not explicitly requested.
+
+Future enhancements (not in current scope)
+
+Location update for active requests:
+- When user opens the app, check if they are outside their last saved 100km radius
+- If outside: prompt "Update my location?" to update the search center for their active requests
+- If inside: silently keep using the last saved location (no prompt needed)
+- This allows users who travel (e.g., from clinic to home) to keep receiving relevant matches
+- Does NOT require "Always" location permission - "While Using App" is sufficient since the check happens when app is opened
