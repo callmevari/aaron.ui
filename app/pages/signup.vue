@@ -1,6 +1,21 @@
 <script setup lang="ts">
 import logoLight from '~/assets/img/new-logo.png'
 import logoDark from '~/assets/img/new-logo-dark.png'
+import { useUserStore } from '~/stores/user'
+
+const userStore = useUserStore()
+const router = useRouter()
+
+// Redirect if already authenticated
+onMounted(() => {
+  if (userStore.isAuthenticated) {
+    if (userStore.isProfileComplete) {
+      router.replace('/home')
+    } else {
+      router.replace('/profile')
+    }
+  }
+})
 
 const currentYear = new Date().getFullYear()
 const step = useState<'initial' | 'form'>('signup-step', () => 'initial')
@@ -82,8 +97,16 @@ const formValid = computed(() => {
 
 const handleSubmit = () => {
   if (!formValid.value) return
-  // TODO: Submit to API
-  console.log('Form submitted:', form)
+
+  // Save user data to store (persisted to localStorage)
+  userStore.signUp({
+    email: form.email.trim(),
+    firstName: form.firstName.trim(),
+    lastName: form.lastName.trim(),
+    phone: `${form.countryCode}${form.phone}`
+  })
+
+  console.log('User signed up:', userStore.auth)
   navigateTo('/profile')
 }
 </script>

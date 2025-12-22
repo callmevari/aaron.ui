@@ -1,4 +1,25 @@
 {
+  "nav": {
+    "myDonors": "My Donors",
+    "requests": "Requests",
+    "sos": "SOS",
+    "vets": "Vets",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "My Donors",
+    "welcomeTitle": "Donor registered!",
+    "welcomeMessage": "{petName} is now registered as a blood donor. Thank you for helping save lives!",
+    "myDonors": "My Donors",
+    "addPet": "Add pet",
+    "bloodType": "Blood type",
+    "years": "years",
+    "noDonorsTitle": "No donors yet",
+    "noDonorsMessage": "Register your pet as a blood donor to help save lives.",
+    "registerDonor": "Register donor",
+    "quickActions": "Quick actions",
+    "sendSOS": "Send SOS"
+  },
   "auth": {
     "emailPlaceholder": "Email address",
     "passwordPlaceholder": "Password",
@@ -38,7 +59,27 @@
     "optional": "optional",
     "km": "km",
     "units": "unit | units",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "saving": "Saving...",
+    "sending": "Sending..."
+  },
+  "emergency": {
+    "selectAnimal": "Select the type of animal",
+    "dog": "Dog",
+    "cat": "Cat"
+  },
+  "sos": {
+    "title": "Emergency SOS",
+    "whatDoYouNeed": "What do you need?",
+    "selectEmergencyType": "Select the type of emergency you're facing",
+    "needBlood": "I need blood",
+    "needBloodDesc": "Blood transfusion for my pet",
+    "needVet": "I need a vet",
+    "needVetDesc": "Find emergency veterinary care",
+    "alreadyActiveBlood": "You already have an active blood request",
+    "alreadyActiveVet": "You already have an active vet request",
+    "sendAlert": "Send emergency alert",
+    "findVet": "Find nearby vet"
   },
   "profile": {
     "title": {
@@ -90,10 +131,14 @@
       "bloodBankSubtitle": "Blood storage facility",
       "both": "Both",
       "bothSubtitle": "Veterinary with blood bank"
+    },
+    "regular": {
+      "title": "I just want to help!"
     }
   },
   "bloodForm": {
     "patientName": "Patient name (pet name)",
+    "patientNamePlaceholder": "Enter your pet's name",
     "patientNamePlaceholderDog": "Enter your dog's name",
     "patientNamePlaceholderCat": "Enter your cat's name",
     "bloodType": "Type of blood",
@@ -117,6 +162,8 @@
     "title": "We need your location",
     "description": "To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.",
     "vetDescription": "To find veterinary clinics and emergency centers near you, we need to know your location. This helps us connect you with help as quickly as possible.",
+    "donorDescription": "We need your location to notify you about blood requests nearby that match your pet's blood type.",
+    "regularDescription": "We need your location to show you nearby blood requests, donors, and veterinary clinics.",
     "gettingLocation": "Getting your location...",
     "searchDifferent": "Search a different location",
     "searchPlaceholder": "Enter address or city",
@@ -143,7 +190,7 @@
     "blocked": "Notifications blocked",
     "blockedDescription": "Please enable notifications in your device settings to receive alerts when blood becomes available.",
     "unsupported": "Push notifications are not supported in this environment. You can still track your request in the app.",
-    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
+    "infoMessage": "Your request will be sent to {recipients} within 200km of your location.",
     "recipients": "donors, veterinaries, and blood banks",
     "sendRequest": "Send blood request",
     "sendingRequest": "Sending request...",
@@ -153,6 +200,11 @@
       "bloodUnitsBody": "A blood bank within 15km has compatible blood for {petName}. Tap to view details.",
       "donorsTitle": "Matching donors nearby",
       "donorsBody": "3 compatible donors are available within 20km and ready to help {petName}."
+    },
+    "nearbyRequest": {
+      "catTitle": "🐱 {count} cat(s) need blood donors nearby",
+      "dogTitle": "🐶 {count} dog(s) need blood donors nearby",
+      "body": "Your pet's blood type matches! Tap to see how you can help."
     }
   },
   "request": {
@@ -181,7 +233,22 @@
     "productTypes": {
       "wholeBlood": "whole blood",
       "packedRedBloodCells": "packed red blood cells"
-    }
+    },
+    "nearbyNeedHelp": "Nearby requests",
+    "myRequest": "My request",
+    "newNearbyAlert": "Pets need your help!",
+    "petsNeedHelp": "{count} pet(s) nearby need blood donors",
+    "urgent": "Urgent",
+    "needsBloodType": "Needs blood type {type}",
+    "noNearbyRequests": "No requests nearby",
+    "noNearbyRequestsDesc": "There are no blood requests that match your donor pets right now. We'll notify you when there's a match.",
+    "noDonorsActive": "No active donors",
+    "noDonorsActiveDesc": "Your donor pets are currently unavailable. Activate them to see matching blood requests nearby.",
+    "activateDonor": "Activate donor",
+    "registerDonorFirst": "Register a donor first",
+    "registerDonorFirstDesc": "Register your pet as a blood donor to see nearby requests that match their blood type.",
+    "noActiveRequest": "No active request",
+    "noActiveRequestDesc": "You don't have an active emergency request. Send an SOS if you need help for your pet."
   },
   "animals": {
     "cat": "Cat",
@@ -189,12 +256,15 @@
   },
   "vetRequest": {
     "title": "Vet Request",
+    "browseTitle": "Veterinary Clinics",
+    "browseSubtitle": "Find nearby vets and clinics",
     "forAnimal": "For {animalType}",
     "clinicsNearby": "Clinics nearby",
     "filter24h": "24/7 clinics only",
     "open": "Open",
     "closed": "Closed",
-    "noClinics": "No clinics found nearby"
+    "noClinics": "No clinics found nearby",
+    "searchOnGoogleMaps": "Look for more vets on Google Maps"
   },
   "vetForm": {
     "whatHappened": "What happened to the animal?",
@@ -204,9 +274,51 @@
   "vetNotifications": {
     "description": "Get notified instantly when a vet becomes ready to help {petName}.",
     "enabledDescription": "You'll receive alerts when clinics are ready to assist with your emergency.",
-    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
+    "infoMessage": "Your request will be sent to {recipients} within 200km of your location.",
     "recipients": "veterinary clinics and emergency centers",
     "sendRequest": "Send vet request",
     "legend": "Next, you will see a list of available vets and clinics near you ready to help."
+  },
+  "donor": {
+    "title": {
+      "dogForm": "Register your dog as donor",
+      "catForm": "Register your cat as donor"
+    },
+    "addDonor": "Add Donor",
+    "selectAnimalType": "What type of animal do you want to register as a donor?",
+    "registerDog": "Register as blood donor",
+    "registerCat": "Register as blood donor",
+    "registerDonor": "Register donor",
+    "otherUnknown": "Other / Unknown",
+    "tapToUpload": "Tap to upload photo",
+    "petName": "Pet name",
+    "petNamePlaceholder": "Enter your pet's name",
+    "age": "Age (years)",
+    "agePlaceholder": "Age",
+    "ageHint": "Ideal donors are 1-8 years old",
+    "weight": "Weight (kg)",
+    "weightPlaceholder": "Weight",
+    "weightHintDog": "Dogs should be at least 25kg",
+    "weightHintCat": "Cats should be 4-10kg",
+    "bloodType": "Blood type",
+    "bloodTypeRequired": "Blood type is required to register as donor",
+    "isTipified": "Has your pet been blood-typed by a vet?",
+    "tipifiedBy": "Which clinic/vet did the blood typing?",
+    "tipifiedByPlaceholder": "Enter clinic or vet name",
+    "tipifiedByHint": "This helps verify your pet's blood type"
+  },
+  "donorNotifications": {
+    "description": "Get notified when pets nearby need blood donors that match {petName}.",
+    "emergencyDescription": "Be available 24/7 to help in critical emergencies. Your pet could save a life.",
+    "enabledDescription": "You'll receive alerts for blood requests within 200km that match your pet's blood type.",
+    "onlyMatchingRequests": "We'll only notify you about matching blood requests.",
+    "infoMessage": "You'll receive alerts for blood requests within 200km that match your pet's blood type.",
+    "sendRequest": "Complete registration"
+  },
+  "regularNotifications": {
+    "description": "Get notified about blood requests, available donors, and veterinary updates in your area.",
+    "enabledDescription": "You'll receive alerts about blood emergencies and available help within 200km.",
+    "infoMessage": "You'll receive updates about blood requests and donors within 200km of your location.",
+    "sendRequest": "Complete registration"
   }
 }

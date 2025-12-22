@@ -1,4 +1,25 @@
 {
+  "nav": {
+    "myDonors": "Donantes",
+    "requests": "Solicitudes",
+    "sos": "SOS",
+    "vets": "Vets",
+    "profile": "Perfil"
+  },
+  "home": {
+    "title": "Mis Donantes",
+    "welcomeTitle": "Donante registrado!",
+    "welcomeMessage": "{petName} ahora está registrado como donante de sangre. Gracias por ayudar a salvar vidas!",
+    "myDonors": "Mis Donantes",
+    "addPet": "Agregar mascota",
+    "bloodType": "Tipo de sangre",
+    "years": "años",
+    "noDonorsTitle": "Sin donantes aún",
+    "noDonorsMessage": "Registrá tu mascota como donante de sangre para ayudar a salvar vidas.",
+    "registerDonor": "Registrar donante",
+    "quickActions": "Acciones rápidas",
+    "sendSOS": "Enviar SOS"
+  },
   "auth": {
     "emailPlaceholder": "Correo electrónico",
     "passwordPlaceholder": "Contraseña",
@@ -38,7 +59,27 @@
     "optional": "opcional",
     "km": "km",
     "units": "unidad | unidades",
-    "comingSoon": "Próximamente"
+    "comingSoon": "Próximamente",
+    "saving": "Guardando...",
+    "sending": "Enviando..."
+  },
+  "emergency": {
+    "selectAnimal": "Seleccioná el tipo de animal",
+    "dog": "Perro",
+    "cat": "Gato"
+  },
+  "sos": {
+    "title": "SOS de Emergencia",
+    "whatDoYouNeed": "¿Qué necesitás?",
+    "selectEmergencyType": "Seleccioná el tipo de emergencia que estás enfrentando",
+    "needBlood": "Necesito sangre",
+    "needBloodDesc": "Transfusión de sangre para mi mascota",
+    "needVet": "Necesito un veterinario",
+    "needVetDesc": "Encontrar atención veterinaria de emergencia",
+    "alreadyActiveBlood": "Ya tenés una solicitud de sangre activa",
+    "alreadyActiveVet": "Ya tenés una solicitud de veterinario activa",
+    "sendAlert": "Enviar alerta de emergencia",
+    "findVet": "Buscar veterinario cercano"
   },
   "profile": {
     "title": {
@@ -90,10 +131,14 @@
       "bloodBankSubtitle": "Centro de almacenamiento de sangre",
       "both": "Ambos",
       "bothSubtitle": "Veterinaria con banco de sangre"
+    },
+    "regular": {
+      "title": "Solo quiero ayudar!"
     }
   },
   "bloodForm": {
     "patientName": "Nombre del paciente (nombre de la mascota)",
+    "patientNamePlaceholder": "Ingresá el nombre de tu mascota",
     "patientNamePlaceholderDog": "Ingresá el nombre de tu perro",
     "patientNamePlaceholderCat": "Ingresá el nombre de tu gato",
     "bloodType": "Tipo de sangre",
@@ -117,6 +162,8 @@
     "title": "Necesitamos tu ubicación",
     "description": "Para conectar tu solicitud con donantes y bancos de sangre cercanos, necesitamos saber tu ubicación. Esto nos ayuda a encontrar ayuda lo más rápido posible.",
     "vetDescription": "Para encontrar clínicas veterinarias y centros de emergencia cerca de vos, necesitamos saber tu ubicación. Esto nos ayuda a conectarte con ayuda lo más rápido posible.",
+    "donorDescription": "Necesitamos tu ubicación para notificarte sobre solicitudes de sangre cercanas que coincidan con el tipo de sangre de tu mascota.",
+    "regularDescription": "Necesitamos tu ubicación para mostrarte solicitudes de sangre, donantes y clínicas veterinarias cercanas.",
     "gettingLocation": "Obteniendo tu ubicación...",
     "searchDifferent": "Buscar una ubicación diferente",
     "searchPlaceholder": "Ingresá dirección o ciudad",
@@ -143,7 +190,7 @@
     "blocked": "Notificaciones bloqueadas",
     "blockedDescription": "Por favor, habilitá las notificaciones en la configuración de tu dispositivo para recibir alertas cuando haya sangre disponible.",
     "unsupported": "Las notificaciones push no están soportadas en este entorno. Podés seguir tu solicitud desde la app.",
-    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 200km de tu ubicación.",
     "recipients": "donantes, veterinarias y bancos de sangre",
     "sendRequest": "Enviar solicitud de sangre",
     "sendingRequest": "Enviando solicitud...",
@@ -153,6 +200,11 @@
       "bloodUnitsBody": "Un banco de sangre a menos de 15km tiene sangre compatible para {petName}. Tocá para ver detalles.",
       "donorsTitle": "Donantes compatibles cerca",
       "donorsBody": "3 donantes compatibles están disponibles a menos de 20km y listos para ayudar a {petName}."
+    },
+    "nearbyRequest": {
+      "catTitle": "🐱 {count} gato(s) necesitan donantes de sangre cerca",
+      "dogTitle": "🐶 {count} perro(s) necesitan donantes de sangre cerca",
+      "body": "¡El tipo de sangre de tu mascota coincide! Tocá para ver cómo podés ayudar."
     }
   },
   "request": {
@@ -181,7 +233,22 @@
     "productTypes": {
       "wholeBlood": "Entera",
       "packedRedBloodCells": "Concentrada"
-    }
+    },
+    "nearbyNeedHelp": "Solicitudes cercanas",
+    "myRequest": "Mi solicitud",
+    "newNearbyAlert": "Mascotas necesitan tu ayuda!",
+    "petsNeedHelp": "{count} mascota(s) cercana(s) necesitan donantes de sangre",
+    "urgent": "Urgente",
+    "needsBloodType": "Necesita sangre tipo {type}",
+    "noNearbyRequests": "Sin solicitudes cercanas",
+    "noNearbyRequestsDesc": "No hay solicitudes de sangre que coincidan con tus mascotas donantes. Te notificaremos cuando haya una coincidencia.",
+    "noDonorsActive": "Sin donantes activos",
+    "noDonorsActiveDesc": "Tus mascotas donantes están actualmente no disponibles. Activalas para ver solicitudes de sangre cercanas.",
+    "activateDonor": "Activar donante",
+    "registerDonorFirst": "Registrá un donante primero",
+    "registerDonorFirstDesc": "Registrá tu mascota como donante de sangre para ver solicitudes cercanas que coincidan con su tipo de sangre.",
+    "noActiveRequest": "Sin solicitud activa",
+    "noActiveRequestDesc": "No tenés una solicitud de emergencia activa. Enviá un SOS si necesitás ayuda para tu mascota."
   },
   "animals": {
     "cat": "Gato",
@@ -189,12 +256,15 @@
   },
   "vetRequest": {
     "title": "Solicitud de Veterinaria",
+    "browseTitle": "Clínicas Veterinarias",
+    "browseSubtitle": "Encontrá veterinarios y clínicas cercanas",
     "forAnimal": "Para {animalType}",
     "clinicsNearby": "Clínicas cercanas",
     "filter24h": "Solo clínicas 24/7",
     "open": "Abierto",
     "closed": "Cerrado",
-    "noClinics": "No se encontraron clínicas cercanas"
+    "noClinics": "No se encontraron clínicas cercanas",
+    "searchOnGoogleMaps": "Buscar más veterinarias en Google Maps"
   },
   "vetForm": {
     "whatHappened": "¿Qué le pasó al animal?",
@@ -204,9 +274,51 @@
   "vetNotifications": {
     "description": "Recibí notificaciones instantáneas cuando un veterinario esté listo para ayudar a {petName}.",
     "enabledDescription": "Recibirás alertas cuando las clínicas estén listas para asistir con tu emergencia.",
-    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 200km de tu ubicación.",
     "recipients": "clínicas veterinarias y centros de emergencia",
     "sendRequest": "Enviar solicitud de veterinario",
     "legend": "A continuación, verás una lista de veterinarios y clínicas disponibles cerca de vos listos para ayudar."
+  },
+  "donor": {
+    "title": {
+      "dogForm": "Registrá a tu perro como donante",
+      "catForm": "Registrá a tu gato como donante"
+    },
+    "addDonor": "Agregar Donante",
+    "selectAnimalType": "¿Qué tipo de animal querés registrar como donante?",
+    "registerDog": "Registrar como donante de sangre",
+    "registerCat": "Registrar como donante de sangre",
+    "registerDonor": "Registrar donante",
+    "otherUnknown": "Otro / Desconocido",
+    "tapToUpload": "Tocá para subir foto",
+    "petName": "Nombre de la mascota",
+    "petNamePlaceholder": "Ingresá el nombre de tu mascota",
+    "age": "Edad (años)",
+    "agePlaceholder": "Edad",
+    "ageHint": "Los donantes ideales tienen 1-8 años",
+    "weight": "Peso (kg)",
+    "weightPlaceholder": "Peso",
+    "weightHintDog": "Los perros deben pesar al menos 25kg",
+    "weightHintCat": "Los gatos deben pesar entre 4-10kg",
+    "bloodType": "Tipo de sangre",
+    "bloodTypeRequired": "El tipo de sangre es requerido para registrarse como donante",
+    "isTipified": "¿Tu mascota fue tipificada por un veterinario?",
+    "tipifiedBy": "¿Qué clínica/veterinario hizo la tipificación?",
+    "tipifiedByPlaceholder": "Ingresá el nombre de la clínica o veterinario",
+    "tipifiedByHint": "Esto ayuda a verificar el tipo de sangre de tu mascota"
+  },
+  "donorNotifications": {
+    "description": "Recibí notificaciones cuando mascotas cercanas necesiten donantes de sangre que coincidan con {petName}.",
+    "emergencyDescription": "Estás disponible 24/7 para ayudar en emergencias críticas. Tu mascota podría salvar una vida.",
+    "enabledDescription": "Recibirás alertas de solicitudes de sangre dentro de 200km que coincidan con el tipo de sangre de tu mascota.",
+    "onlyMatchingRequests": "Solo te notificaremos sobre solicitudes de sangre compatibles.",
+    "infoMessage": "Recibirás alertas de solicitudes de sangre dentro de 200km que coincidan con el tipo de sangre de tu mascota.",
+    "sendRequest": "Completar registro"
+  },
+  "regularNotifications": {
+    "description": "Recibí notificaciones sobre solicitudes de sangre, donantes disponibles y novedades veterinarias en tu zona.",
+    "enabledDescription": "Recibirás alertas sobre emergencias de sangre y ayuda disponible dentro de 200km.",
+    "infoMessage": "Recibirás actualizaciones sobre solicitudes de sangre y donantes dentro de 200km de tu ubicación.",
+    "sendRequest": "Completar registro"
   }
 }

@@ -1,6 +1,21 @@
 <script setup lang="ts">
 import logoLight from '~/assets/img/new-logo.png'
 import logoDark from '~/assets/img/new-logo-dark.png'
+import { useUserStore } from '~/stores/user'
+
+const userStore = useUserStore()
+const router = useRouter()
+
+// Redirect if already authenticated
+onMounted(() => {
+  if (userStore.isAuthenticated) {
+    if (userStore.isProfileComplete) {
+      router.replace('/home')
+    } else {
+      router.replace('/profile')
+    }
+  }
+})
 
 const currentYear = new Date().getFullYear()
 
@@ -17,8 +32,20 @@ const formValid = computed(() => {
 
 const handleSubmit = () => {
   if (!formValid.value) return
-  // TODO: Submit to API
-  console.log('Sign in:', form)
+  // Mock sign in - in real app would verify credentials
+  // For demo, we just sign in with entered email
+  userStore.signUp({
+    email: form.email.trim(),
+    firstName: 'User',
+    lastName: '',
+    phone: ''
+  })
+
+  if (userStore.isProfileComplete) {
+    navigateTo('/home')
+  } else {
+    navigateTo('/profile')
+  }
 }
 </script>
 

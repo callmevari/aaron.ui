@@ -1,14 +1,24 @@
 <script setup lang="ts">
+import { useRequestsStore } from '~/stores/requests'
+
 const { t } = useI18n()
+const router = useRouter()
+const requestsStore = useRequestsStore()
 
 // Types
 type AnimalType = 'cat' | 'dog'
 type RequestStatus = 'active' | 'expired' | 'cancelled'
 
-// Mock request state - simulates a request created 30 minutes ago
-const requestCreatedAt = ref(Date.now() - 30 * 60 * 1000)
-const requestStatus = ref<RequestStatus>('active')
-const REQUEST_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours
+// Store data
+const storeActiveVetRequest = computed(() => requestsStore.activeVetRequest)
+const hasActiveVetRequest = computed(() => requestsStore.hasActiveVetRequest)
+
+// Request status derived from store
+const requestStatus = computed<RequestStatus>(() => {
+  if (!storeActiveVetRequest.value) return 'cancelled'
+  return storeActiveVetRequest.value.status === 'active' ? 'active' :
+         storeActiveVetRequest.value.status === 'expired' ? 'expired' : 'cancelled'
+})
 
 // Countdown timer
 const timeRemaining = ref('')
@@ -19,13 +29,16 @@ const EXTEND_THRESHOLD_MS = 8 * 60 * 60 * 1000
 const canExtend = computed(() => remainingMs.value > 0 && remainingMs.value <= EXTEND_THRESHOLD_MS)
 
 const updateCountdown = () => {
-  if (requestStatus.value !== 'active') return
+  if (requestStatus.value !== 'active' || !storeActiveVetRequest.value) {
+    timeRemaining.value = '0h 0m'
+    remainingMs.value = 0
+    return
+  }
 
-  const elapsed = Date.now() - requestCreatedAt.value
-  const remaining = REQUEST_DURATION_MS - elapsed
+  const expiresAt = new Date(storeActiveVetRequest.value.expiresAt).getTime()
+  const remaining = expiresAt - Date.now()
 
   if (remaining <= 0) {
-    requestStatus.value = 'expired'
     timeRemaining.value = '0h 0m'
     remainingMs.value = 0
     return
@@ -41,8 +54,14 @@ const updateCountdown = () => {
 let countdownInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-  updateCountdown()
-  countdownInterval = setInterval(updateCountdown, 60000)
+  // Hydrate store from localStorage
+  requestsStore.hydrate()
+
+  // Start countdown if there's an active request
+  if (hasActiveVetRequest.value) {
+    updateCountdown()
+    countdownInterval = setInterval(updateCountdown, 60000)
+  }
 })
 
 onUnmounted(() => {
@@ -50,21 +69,21 @@ onUnmounted(() => {
 })
 
 // Actions
-const extendRequest = () => {
-  if (!canExtend.value) return
-  requestCreatedAt.value = Date.now()
-  requestStatus.value = 'active'
+const extendRequest = async () => {
+  if (!canExtend.value || !storeActiveVetRequest.value) return
+  await requestsStore.extendRequest(storeActiveVetRequest.value.id)
   updateCountdown()
 }
 
-const cancelRequest = () => {
-  requestStatus.value = 'cancelled'
+const cancelRequest = async () => {
+  if (storeActiveVetRequest.value) {
+    await requestsStore.resolveRequest(storeActiveVetRequest.value.id)
+  }
 }
 
 const rebroadcastRequest = () => {
-  requestCreatedAt.value = Date.now()
-  requestStatus.value = 'active'
-  updateCountdown()
+  // Navigate to SOS to create a new request
+  navigateTo('/sos')
 }
 
 // Filter state
@@ -190,20 +209,36 @@ const filteredClinics = computed(() => {
 const availableClinicsCount = computed(() => {
   return filteredClinics.value.filter(c => c.isOpen).length
 })
+
+// Google Maps search URL
+const { locale } = useI18n()
+const googleMapsSearchUrl = computed(() => {
+  // Use "Veterinaria" for Spanish, "Vet" for English
+  const searchTerm = locale.value === 'es' ? 'Veterinaria' : 'Vet'
+  // This will open Google Maps and search near the user's current location
+  return `https://www.google.com/maps/search/${encodeURIComponent(searchTerm)}`
+})
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 md:mx-24 lg:mx-48">
+  <div class="min-h-screen min-h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-white md:dark:bg-gray-800 md:mx-24 lg:mx-48 pb-24">
     <!-- Header -->
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 pt-safe md:mt-4">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('vetRequest.title') }}</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ $t('vetRequest.forAnimal', { animalType: requestType === 'cat' ? $t('animals.cat') : $t('animals.dog') }) }}
-          </p>
+          <!-- Show different title when browsing vs active request -->
+          <template v-if="hasActiveVetRequest">
+            <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('vetRequest.title') }}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {{ $t('vetRequest.forAnimal', { animalType: requestType === 'cat' ? $t('animals.cat') : $t('animals.dog') }) }}
+            </p>
+          </template>
+          <template v-else>
+            <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('vetRequest.browseTitle') }}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('vetRequest.browseSubtitle') }}</p>
+          </template>
         </div>
-        <div class="flex items-center gap-2">
+        <div v-if="hasActiveVetRequest" class="flex items-center gap-2">
           <span class="relative flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -229,7 +264,7 @@ const availableClinicsCount = computed(() => {
     </div>
 
     <!-- Filter -->
-    <div class="px-4 pb-4">
+    <div class="px-4 pb-2">
       <label class="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer">
         <input
           v-model="show24HoursOnly"
@@ -241,6 +276,20 @@ const availableClinicsCount = computed(() => {
           <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $t('vetRequest.filter24h') }}</span>
         </div>
       </label>
+    </div>
+
+    <!-- Google Maps Link (top) -->
+    <div class="px-4 pt-2 pb-4 text-center">
+      <a
+        :href="googleMapsSearchUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+      >
+        <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
+        {{ $t('vetRequest.searchOnGoogleMaps') }}
+        <Icon name="heroicons:arrow-top-right-on-square" class="w-3.5 h-3.5" />
+      </a>
     </div>
 
     <!-- Clinics List -->
@@ -320,11 +369,25 @@ const availableClinicsCount = computed(() => {
           <Icon name="heroicons:building-office-2" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p class="text-gray-500 dark:text-gray-400">{{ $t('vetRequest.noClinics') }}</p>
         </div>
+
+        <!-- Google Maps Link -->
+        <div class="text-center py-4 mt-2">
+          <a
+            :href="googleMapsSearchUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+          >
+            <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
+            {{ $t('vetRequest.searchOnGoogleMaps') }}
+            <Icon name="heroicons:arrow-top-right-on-square" class="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
     </div>
 
-    <!-- Bottom Action -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 pb-safe md:left-24 md:right-24 lg:left-48 lg:right-48">
+    <!-- Bottom Action (only shown when there's an active/past request) -->
+    <div v-if="storeActiveVetRequest" class="fixed bottom-20 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 pb-safe md:left-24 md:right-24 lg:left-48 lg:right-48 z-40">
       <!-- Active Request Status -->
       <div v-if="requestStatus === 'active'" class="space-y-3">
         <div class="flex items-center justify-between py-3 px-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
@@ -401,6 +464,9 @@ const availableClinicsCount = computed(() => {
         </button>
       </div>
     </div>
+
+    <!-- Bottom Navigation -->
+    <BottomNav />
   </div>
 </template>
 

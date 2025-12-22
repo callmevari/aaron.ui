@@ -1,6 +1,18 @@
 <script setup lang="ts">
+import { useUserStore } from '~/stores/user'
+
 if (import.meta.client) {
-  await navigateTo('/signup', { replace: true })
+  const userStore = useUserStore()
+
+  if (userStore.isAuthenticated) {
+    if (userStore.isProfileComplete) {
+      await navigateTo('/home', { replace: true })
+    } else {
+      await navigateTo('/profile', { replace: true })
+    }
+  } else {
+    await navigateTo('/signup', { replace: true })
+  }
 }
 </script>
 
