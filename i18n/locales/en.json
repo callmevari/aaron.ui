@@ -37,7 +37,8 @@
     "unknown": "I don't know",
     "optional": "optional",
     "km": "km",
-    "units": "unit | units"
+    "units": "unit | units",
+    "comingSoon": "Coming Soon"
   },
   "profile": {
     "title": {
@@ -48,6 +49,8 @@
       "vetType": "What type of service?",
       "bloodDogForm": "Dog blood request",
       "bloodCatForm": "Cat blood request",
+      "vetDogForm": "Dog vet request",
+      "vetCatForm": "Cat vet request",
       "locationModal": "Location needed",
       "locationConfirm": "Confirm your location",
       "notifications": "Stay connected"
@@ -113,6 +116,7 @@
   "location": {
     "title": "We need your location",
     "description": "To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.",
+    "vetDescription": "To find veterinary clinics and emergency centers near you, we need to know your location. This helps us connect you with help as quickly as possible.",
     "gettingLocation": "Getting your location...",
     "searchDifferent": "Search a different location",
     "searchPlaceholder": "Enter address or city",
@@ -170,6 +174,7 @@
     "requestExpired": "Request expired",
     "requestResolved": "Request resolved",
     "extend24h": "Extend 24h",
+    "extendDisabled": "Extend in < 8h",
     "cancelRequest": "Mark resolved",
     "rebroadcast": "Rebroadcast request",
     "newRequest": "New request",
@@ -181,5 +186,27 @@
   "animals": {
     "cat": "Cat",
     "dog": "Dog"
+  },
+  "vetRequest": {
+    "title": "Vet Request",
+    "forAnimal": "For {animalType}",
+    "clinicsNearby": "Clinics nearby",
+    "filter24h": "24/7 clinics only",
+    "open": "Open",
+    "closed": "Closed",
+    "noClinics": "No clinics found nearby"
+  },
+  "vetForm": {
+    "whatHappened": "What happened to the animal?",
+    "whatHappenedPlaceholder": "Briefly describe the emergency or symptoms",
+    "findNearbyVet": "Find nearby vet"
+  },
+  "vetNotifications": {
+    "description": "Get notified instantly when a vet becomes ready to help {petName}.",
+    "enabledDescription": "You'll receive alerts when clinics are ready to assist with your emergency.",
+    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
+    "recipients": "veterinary clinics and emergency centers",
+    "sendRequest": "Send vet request",
+    "legend": "Next, you will see a list of available vets and clinics near you ready to help."
   }
 }

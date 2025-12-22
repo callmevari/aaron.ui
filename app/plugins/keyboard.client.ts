@@ -3,20 +3,28 @@ import { Capacitor } from '@capacitor/core'
 
 export default defineNuxtPlugin(() => {
   if (Capacitor.isNativePlatform()) {
-    // Hide the accessory bar (toolbar with Done button) to prevent constraint conflicts
-    Keyboard.setAccessoryBarVisible({ isVisible: false })
+    // Show the accessory bar (toolbar with Done button) so users can dismiss keyboard
+    Keyboard.setAccessoryBarVisible({ isVisible: true })
 
-    // Optional: Set scroll behavior
+    // Enable scroll behavior
     Keyboard.setScroll({ isDisabled: false })
 
+    // Scroll focused element into view when keyboard shows
+    Keyboard.addListener('keyboardWillShow', (info) => {
+      const activeElement = document.activeElement as HTMLElement
+      if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+        setTimeout(() => {
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
+      }
+    })
+
     // Pre-warm iOS keyboards to avoid delay on first input focus
-    // This triggers iOS to initialize all keyboard types early
     setTimeout(() => {
       const container = document.createElement('div')
       container.style.cssText = 'position:absolute;top:-9999px;left:-9999px;opacity:0;pointer-events:none;'
       document.body.appendChild(container)
 
-      // Create inputs for each keyboard type
       const inputTypes = [
         { type: 'text', inputmode: 'text' },
         { type: 'tel', inputmode: 'numeric' },
@@ -31,15 +39,12 @@ export default defineNuxtPlugin(() => {
           input.autocomplete = 'off'
           input.setAttribute('readonly', 'readonly')
           container.appendChild(input)
-
-          // Brief focus to initialize this keyboard type
           input.focus()
           input.blur()
           input.remove()
         }, index * 50)
       })
 
-      // Clean up container after all keyboards warmed
       setTimeout(() => {
         container.remove()
       }, 300)

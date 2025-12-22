@@ -37,7 +37,8 @@
     "unknown": "No lo sé",
     "optional": "opcional",
     "km": "km",
-    "units": "unidad | unidades"
+    "units": "unidad | unidades",
+    "comingSoon": "Próximamente"
   },
   "profile": {
     "title": {
@@ -48,6 +49,8 @@
       "vetType": "¿Qué tipo de servicio?",
       "bloodDogForm": "Solicitud de sangre para perro",
       "bloodCatForm": "Solicitud de sangre para gato",
+      "vetDogForm": "Solicitud de veterinario para perro",
+      "vetCatForm": "Solicitud de veterinario para gato",
       "locationModal": "Necesitamos tu ubicación",
       "locationConfirm": "Confirmá tu ubicación",
       "notifications": "Mantenete conectado"
@@ -113,6 +116,7 @@
   "location": {
     "title": "Necesitamos tu ubicación",
     "description": "Para conectar tu solicitud con donantes y bancos de sangre cercanos, necesitamos saber tu ubicación. Esto nos ayuda a encontrar ayuda lo más rápido posible.",
+    "vetDescription": "Para encontrar clínicas veterinarias y centros de emergencia cerca de vos, necesitamos saber tu ubicación. Esto nos ayuda a conectarte con ayuda lo más rápido posible.",
     "gettingLocation": "Obteniendo tu ubicación...",
     "searchDifferent": "Buscar una ubicación diferente",
     "searchPlaceholder": "Ingresá dirección o ciudad",
@@ -170,6 +174,7 @@
     "requestExpired": "Solicitud vencida",
     "requestResolved": "Solicitud resuelta",
     "extend24h": "Extender 24h",
+    "extendDisabled": "Extender en < 8h",
     "cancelRequest": "Marcar resuelta",
     "rebroadcast": "Volver a difundir",
     "newRequest": "Nueva solicitud",
@@ -181,5 +186,27 @@
   "animals": {
     "cat": "Gato",
     "dog": "Perro"
+  },
+  "vetRequest": {
+    "title": "Solicitud de Veterinaria",
+    "forAnimal": "Para {animalType}",
+    "clinicsNearby": "Clínicas cercanas",
+    "filter24h": "Solo clínicas 24/7",
+    "open": "Abierto",
+    "closed": "Cerrado",
+    "noClinics": "No se encontraron clínicas cercanas"
+  },
+  "vetForm": {
+    "whatHappened": "¿Qué le pasó al animal?",
+    "whatHappenedPlaceholder": "Describí brevemente la emergencia o síntomas",
+    "findNearbyVet": "Buscar veterinario cercano"
+  },
+  "vetNotifications": {
+    "description": "Recibí notificaciones instantáneas cuando un veterinario esté listo para ayudar a {petName}.",
+    "enabledDescription": "Recibirás alertas cuando las clínicas estén listas para asistir con tu emergencia.",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
+    "recipients": "clínicas veterinarias y centros de emergencia",
+    "sendRequest": "Enviar solicitud de veterinario",
+    "legend": "A continuación, verás una lista de veterinarios y clínicas disponibles cerca de vos listos para ayudar."
   }
 }

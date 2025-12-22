@@ -14,6 +14,8 @@ type Step =
   | 'vet-type'
   | 'blood-dog-form'
   | 'blood-cat-form'
+  | 'vet-dog-form'
+  | 'vet-cat-form'
   | 'location-modal'
   | 'location-confirm'
   | 'notifications'
@@ -60,6 +62,32 @@ const dogBloodFormValid = computed(() => {
          dogBloodForm.isHospitalized
 })
 
+// Vet emergency form - Cat
+const vetCatForm = reactive({
+  patientName: '',
+  bloodType: '' as '' | 'A' | 'B' | 'AB' | 'unknown',
+  hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
+  whatHappened: ''
+})
+
+const vetCatFormValid = computed(() => {
+  return vetCatForm.patientName.trim() &&
+         vetCatForm.hasBeenTyped
+})
+
+// Vet emergency form - Dog
+const vetDogForm = reactive({
+  patientName: '',
+  bloodType: '' as '' | 'dea-positive' | 'dea-negative' | 'other' | 'unknown',
+  hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
+  whatHappened: ''
+})
+
+const vetDogFormValid = computed(() => {
+  return vetDogForm.patientName.trim() &&
+         vetDogForm.hasBeenTyped
+})
+
 // Location state
 const userLocation = reactive({
   latitude: -34.6037, // Default to Buenos Aires
@@ -79,8 +107,13 @@ const notificationState = reactive({
 
 // Get patient name from form
 const patientName = computed(() => {
-  if (animalType.value === 'cat') return catBloodForm.patientName
-  if (animalType.value === 'dog') return dogBloodForm.patientName
+  if (emergencyType.value === 'blood') {
+    if (animalType.value === 'cat') return catBloodForm.patientName
+    if (animalType.value === 'dog') return dogBloodForm.patientName
+  } else if (emergencyType.value === 'vet') {
+    if (animalType.value === 'cat') return vetCatForm.patientName
+    if (animalType.value === 'dog') return vetDogForm.patientName
+  }
   return ''
 })
 
@@ -198,12 +231,22 @@ const selectEmergencyType = (type: EmergencyType) => {
 const selectAnimal = (type: AnimalType) => {
   animalType.value = type
 
-  // Blood emergency flow
+  // Blood emergency flow - needs blood form first
   if (emergencyType.value === 'blood') {
     if (type === 'dog') {
       step.value = 'blood-dog-form'
     } else if (type === 'cat') {
       step.value = 'blood-cat-form'
+    }
+    return
+  }
+
+  // Vet emergency flow - needs vet form first
+  if (emergencyType.value === 'vet') {
+    if (type === 'dog') {
+      step.value = 'vet-dog-form'
+    } else if (type === 'cat') {
+      step.value = 'vet-cat-form'
     }
     return
   }
@@ -230,6 +273,28 @@ const submitDogBloodForm = () => {
     emergencyType: emergencyType.value,
     animalType: animalType.value,
     ...dogBloodForm
+  })
+  step.value = 'location-modal'
+}
+
+const submitVetCatForm = () => {
+  if (!vetCatFormValid.value) return
+  console.log('Vet cat emergency data:', {
+    profileType: profileType.value,
+    emergencyType: emergencyType.value,
+    animalType: animalType.value,
+    ...vetCatForm
+  })
+  step.value = 'location-modal'
+}
+
+const submitVetDogForm = () => {
+  if (!vetDogFormValid.value) return
+  console.log('Vet dog emergency data:', {
+    profileType: profileType.value,
+    emergencyType: emergencyType.value,
+    animalType: animalType.value,
+    ...vetDogForm
   })
   step.value = 'location-modal'
 }
@@ -477,6 +542,23 @@ const finalSubmit = async () => {
           patient: form.patientName
         }
       })
+    } else if (profileType.value === 'emergency' && emergencyType.value === 'vet') {
+      // Vet emergency flow - broadcast to nearby vets
+      console.log('🏥 Creating vet emergency request...')
+      console.log('📍 Location:', userLocation.address)
+      console.log('🐾 Animal type:', animalType.value)
+
+      // Mock: Simulate notifying nearby vets
+      const nearbyVetsCount = Math.floor(Math.random() * 10) + 5
+      console.log(`✅ Vet emergency broadcasted. Notified ${nearbyVetsCount} nearby vets/clinics.`)
+
+      // Navigate to vet request results
+      navigateTo({
+        path: '/request/vet',
+        query: {
+          type: animalType.value
+        }
+      })
     } else {
       // Other flows - go to home for now
       navigateTo('/')
@@ -510,8 +592,16 @@ const goBack = () => {
   } else if (step.value === 'blood-dog-form' || step.value === 'blood-cat-form') {
     step.value = 'emergency-animal'
     animalType.value = null
+  } else if (step.value === 'vet-dog-form' || step.value === 'vet-cat-form') {
+    step.value = 'emergency-animal'
+    animalType.value = null
   } else if (step.value === 'location-modal') {
-    step.value = animalType.value === 'cat' ? 'blood-cat-form' : 'blood-dog-form'
+    // Go back to the appropriate form based on flow type
+    if (emergencyType.value === 'blood') {
+      step.value = animalType.value === 'cat' ? 'blood-cat-form' : 'blood-dog-form'
+    } else if (emergencyType.value === 'vet') {
+      step.value = animalType.value === 'cat' ? 'vet-cat-form' : 'vet-dog-form'
+    }
   } else if (step.value === 'location-confirm') {
     step.value = 'location-modal'
   } else if (step.value === 'notifications') {
@@ -530,6 +620,8 @@ const stepTitle = computed(() => {
     case 'vet-type': return t('profile.title.vetType')
     case 'blood-dog-form': return t('profile.title.bloodDogForm')
     case 'blood-cat-form': return t('profile.title.bloodCatForm')
+    case 'vet-dog-form': return t('profile.title.vetDogForm')
+    case 'vet-cat-form': return t('profile.title.vetCatForm')
     case 'location-modal': return t('profile.title.locationModal')
     case 'location-confirm': return t('profile.title.locationConfirm')
     case 'notifications': return t('profile.title.notifications')
@@ -674,22 +766,22 @@ const stepTitle = computed(() => {
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
 
-            <!-- Only show "Other" for vet emergencies -->
-            <button
+            <!-- Only show "Other" for vet emergencies - DISABLED -->
+            <div
               v-if="emergencyType === 'vet'"
-              type="button"
-              @click="selectAnimal('other')"
-              class="w-full p-5 flex items-center gap-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 transition-all group"
+              class="w-full p-5 flex items-center gap-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed"
             >
-              <div class="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:scale-110 transition-transform text-3xl">
+              <div class="w-14 h-14 rounded-xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-3xl">
                 🦜
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.animal.other') }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.animal.otherSubtitle') }}</p>
+                <p class="text-base font-semibold text-gray-500 dark:text-gray-400">{{ $t('profile.animal.other') }}</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500">{{ $t('profile.animal.otherSubtitle') }}</p>
               </div>
-              <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
-            </button>
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                {{ $t('common.comingSoon') }}
+              </span>
+            </div>
           </div>
 
           <!-- Step: Donor Animal -->
@@ -1098,6 +1190,200 @@ const stepTitle = computed(() => {
             </button>
           </div>
 
+          <!-- Step: Vet Dog Form -->
+          <div v-else-if="step === 'vet-dog-form'" key="vet-dog-form" class="space-y-5">
+            <!-- Patient Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.patientName') }}
+              </label>
+              <input
+                v-model="vetDogForm.patientName"
+                type="text"
+                :placeholder="$t('bloodForm.patientNamePlaceholderDog')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <!-- Has Been Blood Typed -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.dog').toLowerCase() }) }}
+              </label>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  v-for="option in yesNoOptions"
+                  :key="option.value"
+                  type="button"
+                  @click="vetDogForm.hasBeenTyped = option.value"
+                  :class="[
+                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
+                    vetDogForm.hasBeenTyped === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Blood Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.bloodType') }}
+              </label>
+              <div class="grid grid-cols-1 gap-2">
+                <button
+                  v-for="option in dogBloodTypeOptions"
+                  :key="option.value"
+                  type="button"
+                  @click="vetDogForm.bloodType = option.value"
+                  :class="[
+                    'py-3 px-4 text-sm font-medium rounded-lg border-2 transition-all text-left',
+                    vetDogForm.bloodType === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- What Happened -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('vetForm.whatHappened') }}
+              </label>
+              <textarea
+                v-model="vetDogForm.whatHappened"
+                rows="4"
+                :placeholder="$t('vetForm.whatHappenedPlaceholder')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="button"
+              @mousedown.prevent="submitVetDogForm"
+              @touchend.prevent="submitVetDogForm"
+              :disabled="!vetDogFormValid"
+              class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ $t('vetForm.findNearbyVet') }}
+              <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Step: Vet Cat Form -->
+          <div v-else-if="step === 'vet-cat-form'" key="vet-cat-form" class="space-y-5">
+            <!-- Patient Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.patientName') }}
+              </label>
+              <input
+                v-model="vetCatForm.patientName"
+                type="text"
+                :placeholder="$t('bloodForm.patientNamePlaceholderCat')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <!-- Has Been Blood Typed -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.cat').toLowerCase() }) }}
+              </label>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  v-for="option in yesNoOptions"
+                  :key="option.value"
+                  type="button"
+                  @click="vetCatForm.hasBeenTyped = option.value"
+                  :class="[
+                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
+                    vetCatForm.hasBeenTyped === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Blood Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('bloodForm.bloodType') }}
+              </label>
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  v-for="type in ['A', 'B', 'AB', 'unknown'] as const"
+                  :key="type"
+                  type="button"
+                  @click="vetCatForm.bloodType = type"
+                  :class="[
+                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
+                    vetCatForm.bloodType === type
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                >
+                  {{ type === 'unknown' ? $t('common.unknown') : type }}
+                </button>
+              </div>
+            </div>
+
+            <!-- What Happened -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('vetForm.whatHappened') }}
+              </label>
+              <textarea
+                v-model="vetCatForm.whatHappened"
+                rows="4"
+                :placeholder="$t('vetForm.whatHappenedPlaceholder')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500 resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="button"
+              @mousedown.prevent="submitVetCatForm"
+              @touchend.prevent="submitVetCatForm"
+              :disabled="!vetCatFormValid"
+              class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ $t('vetForm.findNearbyVet') }}
+              <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
+            </button>
+          </div>
+
           <!-- Step: Location Modal -->
           <div v-else-if="step === 'location-modal'" key="location-modal" class="flex flex-col items-center text-center space-y-6">
             <div class="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
@@ -1109,7 +1395,7 @@ const stepTitle = computed(() => {
                 {{ $t('location.title') }}
               </h2>
               <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('location.description') }}
+                {{ emergencyType === 'vet' ? $t('location.vetDescription') : $t('location.description') }}
               </p>
             </div>
 
@@ -1232,7 +1518,10 @@ const stepTitle = computed(() => {
             <!-- Intro Text -->
             <div class="text-center space-y-2">
               <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('notifications.description', { petName: patientName || 'your pet' }) }}
+                {{ emergencyType === 'vet'
+                  ? $t('vetNotifications.description', { petName: patientName || 'your pet' })
+                  : $t('notifications.description', { petName: patientName || 'your pet' })
+                }}
               </p>
             </div>
 
@@ -1253,7 +1542,7 @@ const stepTitle = computed(() => {
                   {{ $t('notifications.enableButton') }}
                 </template>
               </button>
-              <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+              <p v-if="emergencyType === 'blood'" class="text-center text-sm text-gray-500 dark:text-gray-400">
                 {{ $t('notifications.onlyMatchingBlood') }}
               </p>
             </div>
@@ -1267,7 +1556,10 @@ const stepTitle = computed(() => {
               </div>
 
               <p class="text-sm text-center text-gray-500 dark:text-gray-400">
-                {{ $t('notifications.enabledDescription') }}
+                {{ emergencyType === 'vet'
+                  ? $t('vetNotifications.enabledDescription')
+                  : $t('notifications.enabledDescription')
+                }}
               </p>
             </div>
 
@@ -1299,7 +1591,20 @@ const stepTitle = computed(() => {
               <div class="flex gap-3">
                 <Icon name="heroicons:information-circle" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                 <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {{ $t('notifications.infoMessage', { recipients: $t('notifications.recipients') }) }}
+                  {{ emergencyType === 'vet'
+                    ? $t('vetNotifications.infoMessage', { recipients: $t('vetNotifications.recipients') })
+                    : $t('notifications.infoMessage', { recipients: $t('notifications.recipients') })
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Legend for vet flow -->
+            <div v-if="emergencyType === 'vet'" class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div class="flex gap-3">
+                <Icon name="heroicons:building-office-2" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <p class="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                  {{ $t('vetNotifications.legend') }}
                 </p>
               </div>
             </div>
@@ -1316,7 +1621,7 @@ const stepTitle = computed(() => {
                 {{ $t('notifications.sendingRequest') }}
               </template>
               <template v-else>
-                {{ $t('notifications.sendRequest') }}
+                {{ emergencyType === 'vet' ? $t('vetNotifications.sendRequest') : $t('notifications.sendRequest') }}
                 <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
               </template>
             </button>

@@ -13,8 +13,13 @@ const REQUEST_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 // Countdown timer
 const timeRemaining = ref('')
+const remainingMs = ref(0)
 const isExpired = computed(() => requestStatus.value === 'expired')
 const isCancelled = computed(() => requestStatus.value === 'cancelled')
+
+// Can only extend when less than 8 hours remaining
+const EXTEND_THRESHOLD_MS = 8 * 60 * 60 * 1000 // 8 hours
+const canExtend = computed(() => remainingMs.value > 0 && remainingMs.value <= EXTEND_THRESHOLD_MS)
 
 const updateCountdown = () => {
   if (requestStatus.value !== 'active') return
@@ -25,9 +30,11 @@ const updateCountdown = () => {
   if (remaining <= 0) {
     requestStatus.value = 'expired'
     timeRemaining.value = '0h 0m'
+    remainingMs.value = 0
     return
   }
 
+  remainingMs.value = remaining
   const hours = Math.floor(remaining / (60 * 60 * 1000))
   const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000))
   timeRemaining.value = `${hours}h ${minutes}m`
@@ -454,8 +461,8 @@ const activeTab = ref<'units' | 'donors'>('units')
           <div class="flex justify-between gap-3">
             <!-- Left Column: Avatar + Info -->
             <div class="flex-1 min-w-0">
-              <!-- Row 1: Avatar + Name -->
-              <div class="flex items-center gap-3 mb-1">
+              <!-- Row 1: Avatar + Name/Blood Type -->
+              <div class="flex items-start gap-3 mb-2">
                 <div :class="[
                   'w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0',
                   donor.isAvailable
@@ -464,18 +471,19 @@ const activeTab = ref<'units' | 'donors'>('units')
                 ]">
                   {{ requestType === 'cat' ? '🐱' : '🐶' }}
                 </div>
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="font-semibold text-gray-900 dark:text-white truncate">{{ donor.petName }}</span>
-                  <span v-if="donor.isVerified" class="text-blue-500 shrink-0" title="Verified donor">
-                    <Icon name="heroicons:check-badge" class="w-4 h-4" />
-                  </span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-gray-900 dark:text-white truncate">{{ donor.petName }}</span>
+                    <span v-if="donor.isVerified" class="text-blue-500 shrink-0" title="Verified donor">
+                      <Icon name="heroicons:check-badge" class="w-4 h-4" />
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ $t('request.type', { type: donor.bloodType }) }}
+                  </p>
                 </div>
               </div>
-              <!-- Row 2: Blood Type -->
-              <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                {{ $t('request.type', { type: donor.bloodType }) }}
-              </p>
-              <!-- Row 3: Info labels -->
+              <!-- Row 2: Info labels -->
               <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 flex-nowrap">
                 <span class="flex items-center gap-1 whitespace-nowrap shrink-0">
                   <Icon name="heroicons:map-pin" class="w-3.5 h-3.5" />
@@ -546,10 +554,16 @@ const activeTab = ref<'units' | 'donors'>('units')
           <button
             type="button"
             @click="extendRequest"
-            class="flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+            :disabled="!canExtend"
+            :class="[
+              'flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border transition',
+              canExtend
+                ? 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
+                : 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+            ]"
           >
             <Icon name="heroicons:arrow-path" class="w-4 h-4" />
-            {{ $t('request.extend24h') }}
+            {{ canExtend ? $t('request.extend24h') : $t('request.extendDisabled') }}
           </button>
           <button
             type="button"
