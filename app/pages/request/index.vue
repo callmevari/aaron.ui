@@ -816,8 +816,8 @@ const activeTab = ref<'units' | 'donors'>('units')
     </div>
     </template>
 
-    <!-- Bottom Action -->
-    <div class="fixed bottom-20 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 pb-safe md:left-24 md:right-24 lg:left-48 lg:right-48 z-40">
+    <!-- Bottom Action - bottom-16 matches navbar h-16 -->
+    <div class="fixed bottom-16 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 md:left-24 md:right-24 lg:left-48 lg:right-48 z-40">
       <!-- Active Request Status -->
       <div v-if="requestStatus === 'active'" class="space-y-3">
         <!-- Status with countdown -->

@@ -210,19 +210,36 @@ const requestNotificationPermission = async () => {
     if (isNative) {
       // Native platform: use Capacitor Push Notifications
       // This triggers the native iOS/Android permission dialog
+      const { Capacitor } = await import('@capacitor/core')
       const { PushNotifications } = await import('@capacitor/push-notifications')
+      const platform = Capacitor.getPlatform()
 
       // Request permission (this triggers the native dialog)
-      console.log('📱 Requesting push notification permission...')
+      console.log(`📱 [${platform}] Requesting push notification permission...`)
       const permStatus = await PushNotifications.requestPermissions()
-      console.log('📱 Permission result:', permStatus.receive)
+      console.log(`📱 [${platform}] Permission result:`, permStatus.receive)
 
       if (permStatus.receive === 'granted') {
         // Register for push notifications after permission granted
-        console.log('📱 Registering for push notifications...')
-        await PushNotifications.register()
+        // NOTE: On Android, register() requires Firebase Cloud Messaging (FCM)
+        // Without google-services.json, the native code crashes before JS can catch it
+        // For development/testing, we skip FCM registration on Android
+        if (platform === 'android') {
+          // DEVELOPMENT MODE: Skip FCM registration (no Firebase configured)
+          // TODO: For production, add google-services.json and uncomment the register() call
+          // await PushNotifications.register()
+          console.warn('⚠️ [Android] FCM registration skipped (Firebase not configured)')
+          console.warn('⚠️ [Android] Add google-services.json to android/app/ for production push notifications')
+          console.log('📱 [Android] Permission granted - using local notifications for testing')
+        } else {
+          // iOS - register normally (uses APNs, no Firebase needed)
+          console.log('📱 [iOS] Registering for push notifications...')
+          await PushNotifications.register()
+          console.log('✅ [iOS] Push notification registration successful')
+        }
+
         notificationState.permissionStatus = 'granted'
-        console.log('✅ Push notification permission granted and registered')
+        console.log('✅ Push notification permission granted')
         return true
       } else {
         notificationState.permissionStatus = 'denied'

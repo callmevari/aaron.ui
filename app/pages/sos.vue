@@ -482,7 +482,7 @@ const handleSubmit = async () => {
               type="button"
               @click="handleSubmit"
               :disabled="!dogBloodFormValid || isSubmitting"
-              class="w-full py-3.5 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3.5 px-4 mb-6 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <template v-if="isSubmitting">
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -624,7 +624,7 @@ const handleSubmit = async () => {
               type="button"
               @click="handleSubmit"
               :disabled="!catBloodFormValid || isSubmitting"
-              class="w-full py-3.5 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3.5 px-4 mb-6 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <template v-if="isSubmitting">
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -671,7 +671,7 @@ const handleSubmit = async () => {
               type="button"
               @click="handleSubmit"
               :disabled="!vetDogFormValid || isSubmitting"
-              class="w-full py-3.5 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3.5 px-4 mb-6 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <template v-if="isSubmitting">
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -718,7 +718,7 @@ const handleSubmit = async () => {
               type="button"
               @click="handleSubmit"
               :disabled="!vetCatFormValid || isSubmitting"
-              class="w-full py-3.5 px-4 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3.5 px-4 mb-6 inline-flex justify-center items-center gap-x-2 text-base font-semibold rounded-xl border border-transparent bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <template v-if="isSubmitting">
                 <div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
