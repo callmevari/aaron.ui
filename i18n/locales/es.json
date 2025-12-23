@@ -61,7 +61,8 @@
     "units": "unidad | unidades",
     "comingSoon": "Próximamente",
     "saving": "Guardando...",
-    "sending": "Enviando..."
+    "sending": "Enviando...",
+    "change": "Cambiar"
   },
   "emergency": {
     "selectAnimal": "Seleccioná el tipo de animal",
@@ -78,8 +79,35 @@
     "needVetDesc": "Encontrar atención veterinaria de emergencia",
     "alreadyActiveBlood": "Ya tenés una solicitud de sangre activa",
     "alreadyActiveVet": "Ya tenés una solicitud de veterinario activa",
+    "maxRequestsReached": "Máximo de {count} solicitudes activas alcanzado",
+    "vetsCannotRequestVets": "Como veterinario, vos brindás este servicio",
+    "bloodBanksCannotRequestVets": "Los bancos de sangre no pueden solicitar servicios veterinarios",
     "sendAlert": "Enviar alerta de emergencia",
-    "findVet": "Buscar veterinario cercano"
+    "findVet": "Buscar veterinario cercano",
+    "activeAlerts": "{count} alerta activa | {count} alertas activas",
+    "remainingAlerts": "{remaining} espacio restante | {remaining} espacios restantes",
+    "manageAlerts": "Gestionar"
+  },
+  "matricula": {
+    "title": "Matrícula Profesional",
+    "subtitle": "Ingresá tu número de matrícula",
+    "numeroLabel": "Número de Matrícula",
+    "numeroPlaceholder": "Ingresá tu número de matrícula",
+    "numeroHint": "Tu número de matrícula profesional oficial",
+    "documentsLabel": "Documentos de Matrícula",
+    "addPhoto": "Agregar foto del documento",
+    "addPhotoHint": "Subí fotos de tu matrícula (opcional)",
+    "countryLabel": "País",
+    "countryPlaceholder": "Seleccionar país",
+    "countryNamePlaceholder": "Ingresá el nombre de tu país",
+    "countryHint": "Por ahora, estamos enfocados en Argentina como país principal, pero nuestra meta es permitir que veterinarios de todo el mundo usen la app según su ubicación.",
+    "infoMessage": "Tu número de matrícula se usará para recibir solicitudes de emergencia de dueños de mascotas."
+  },
+  "emailVerification": {
+    "bannerTitle": "Verificá tu email",
+    "bannerMessage": "Por favor verificá tu email para recibir notificaciones de emergencia.",
+    "resendButton": "Reenviar email de verificación",
+    "verifyButton": "Verificar email"
   },
   "profile": {
     "title": {
@@ -162,6 +190,7 @@
     "title": "Necesitamos tu ubicación",
     "description": "Para conectar tu solicitud con donantes y bancos de sangre cercanos, necesitamos saber tu ubicación. Esto nos ayuda a encontrar ayuda lo más rápido posible.",
     "vetDescription": "Para encontrar clínicas veterinarias y centros de emergencia cerca de vos, necesitamos saber tu ubicación. Esto nos ayuda a conectarte con ayuda lo más rápido posible.",
+    "vetRegistrationDescription": "Necesitamos tu ubicación para recibir solicitudes de emergencia de dueños de mascotas cercanos que necesiten asistencia veterinaria.",
     "donorDescription": "Necesitamos tu ubicación para notificarte sobre solicitudes de sangre cercanas que coincidan con el tipo de sangre de tu mascota.",
     "regularDescription": "Necesitamos tu ubicación para mostrarte solicitudes de sangre, donantes y clínicas veterinarias cercanas.",
     "gettingLocation": "Obteniendo tu ubicación...",
@@ -234,8 +263,8 @@
       "wholeBlood": "Entera",
       "packedRedBloodCells": "Concentrada"
     },
-    "nearbyNeedHelp": "Solicitudes cercanas",
-    "myRequest": "Mi solicitud",
+    "helpOthers": "Ayudar",
+    "myRequests": "Mi solicitud | Mis solicitudes",
     "newNearbyAlert": "Mascotas necesitan tu ayuda!",
     "petsNeedHelp": "{count} mascota(s) cercana(s) necesitan donantes de sangre",
     "urgent": "Urgente",
@@ -248,7 +277,10 @@
     "registerDonorFirst": "Registrá un donante primero",
     "registerDonorFirstDesc": "Registrá tu mascota como donante de sangre para ver solicitudes cercanas que coincidan con su tipo de sangre.",
     "noActiveRequest": "Sin solicitud activa",
-    "noActiveRequestDesc": "No tenés una solicitud de emergencia activa. Enviá un SOS si necesitás ayuda para tu mascota."
+    "noActiveRequestDesc": "No tenés una solicitud de emergencia activa. Enviá un SOS si necesitás ayuda para tu mascota.",
+    "switchBetweenAlerts": "Tenés {count} alertas activas. Tocá para cambiar:",
+    "resolveConfirmTitle": "¿Marcar como resuelto?",
+    "resolveConfirmMessage": "¿Querés finalizar la alerta de emergencia para {petName}?"
   },
   "animals": {
     "cat": "Gato",
@@ -278,6 +310,12 @@
     "recipients": "clínicas veterinarias y centros de emergencia",
     "sendRequest": "Enviar solicitud de veterinario",
     "legend": "A continuación, verás una lista de veterinarios y clínicas disponibles cerca de vos listos para ayudar."
+  },
+  "vetRegistrationNotifications": {
+    "description": "Recibí notificaciones cuando dueños de mascotas cercanos necesiten asistencia veterinaria.",
+    "enabledDescription": "Recibirás alertas de emergencia de dueños de mascotas dentro de 200km que necesiten tu ayuda.",
+    "infoMessage": "Recibirás alertas de emergencias veterinarias dentro de 200km de tu ubicación.",
+    "sendRequest": "Completar registro"
   },
   "donor": {
     "title": {

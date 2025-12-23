@@ -12,6 +12,16 @@ const showWelcome = ref(false)
 const registeredPetName = ref('')
 
 onMounted(async () => {
+  // Check for pending notification route (cold start from notification tap)
+  if (typeof window !== 'undefined') {
+    const pendingRoute = sessionStorage.getItem('pendingNotificationRoute')
+    if (pendingRoute) {
+      sessionStorage.removeItem('pendingNotificationRoute')
+      await navigateTo(pendingRoute, { replace: true })
+      return
+    }
+  }
+
   // Fetch pets from store
   await petsStore.fetchPets()
 
@@ -20,8 +30,8 @@ onMounted(async () => {
     showWelcome.value = true
     registeredPetName.value = route.query.petName as string
 
-    // Mark user as registered in store
-    userStore.completeRegistration(['donor'])
+    // Add donor role (preserves existing roles like vet/blood_bank)
+    userStore.addRole('donor')
 
     // Clear the welcome after 5 seconds
     setTimeout(() => {
@@ -40,6 +50,19 @@ const getBloodTypeLabel = (bloodType: string) => {
   if (bloodType.includes('Negative') || bloodType.endsWith('-')) return bloodType.replace(' Negative', '-').replace('Negative', '-')
   return bloodType
 }
+
+// Email verification banner handlers
+const resendVerificationEmail = () => {
+  // Mock: In production, this would trigger a backend API call
+  console.log('📧 Resending verification email to:', userStore.auth?.email)
+  alert('Verification email sent! Please check your inbox.')
+}
+
+const dismissEmailBanner = () => {
+  // For now, just mark as verified (mock behavior)
+  // In production, this would just hide the banner temporarily
+  userStore.setEmailVerified(true)
+}
 </script>
 
 <template>
@@ -55,6 +78,40 @@ const getBloodTypeLabel = (bloodType: string) => {
       >
         {{ $t('home.addPet') }}
       </NuxtLink>
+    </div>
+
+    <!-- Email Verification Banner (for vets) -->
+    <div
+      v-if="userStore.needsEmailVerification"
+      class="mb-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
+    >
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
+          <Icon name="heroicons:envelope" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+        </div>
+        <div class="flex-1">
+          <p class="font-medium text-amber-800 dark:text-amber-200">
+            {{ $t('emailVerification.bannerTitle') }}
+          </p>
+          <p class="text-sm text-amber-700 dark:text-amber-300 mb-2">
+            {{ $t('emailVerification.bannerMessage') }}
+          </p>
+          <button
+            type="button"
+            class="text-sm font-medium text-amber-700 dark:text-amber-300 underline hover:no-underline"
+            @click="resendVerificationEmail"
+          >
+            {{ $t('emailVerification.resendButton') }}
+          </button>
+        </div>
+        <button
+          type="button"
+          @click="dismissEmailBanner"
+          class="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
+        >
+          <Icon name="heroicons:x-mark" class="w-5 h-5" />
+        </button>
+      </div>
     </div>
 
     <!-- Welcome Message (after registration) -->

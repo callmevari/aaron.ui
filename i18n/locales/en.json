@@ -61,7 +61,8 @@
     "units": "unit | units",
     "comingSoon": "Coming Soon",
     "saving": "Saving...",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "change": "Change"
   },
   "emergency": {
     "selectAnimal": "Select the type of animal",
@@ -78,8 +79,35 @@
     "needVetDesc": "Find emergency veterinary care",
     "alreadyActiveBlood": "You already have an active blood request",
     "alreadyActiveVet": "You already have an active vet request",
+    "maxRequestsReached": "Maximum {count} active requests reached",
+    "vetsCannotRequestVets": "As a vet, you provide this service",
+    "bloodBanksCannotRequestVets": "Blood banks cannot request vet services",
     "sendAlert": "Send emergency alert",
-    "findVet": "Find nearby vet"
+    "findVet": "Find nearby vet",
+    "activeAlerts": "{count} active alert | {count} active alerts",
+    "remainingAlerts": "{remaining} slot remaining | {remaining} slots remaining",
+    "manageAlerts": "Manage"
+  },
+  "matricula": {
+    "title": "Professional License",
+    "subtitle": "Enter your professional license number",
+    "numeroLabel": "License Number (Matrícula)",
+    "numeroPlaceholder": "Enter your license number",
+    "numeroHint": "Your official veterinary license number",
+    "documentsLabel": "License Documents",
+    "addPhoto": "Add document photo",
+    "addPhotoHint": "Upload photos of your license (optional)",
+    "countryLabel": "Country",
+    "countryPlaceholder": "Select country",
+    "countryNamePlaceholder": "Enter your country name",
+    "countryHint": "For now, we are targeting Argentina as our main country, but our goal is to let veterinarians from around the world use the app based on their location.",
+    "infoMessage": "Your license number will be used to receive emergency requests from pet owners."
+  },
+  "emailVerification": {
+    "bannerTitle": "Verify your email",
+    "bannerMessage": "Please verify your email to receive emergency notifications.",
+    "resendButton": "Resend verification email",
+    "verifyButton": "Verify email"
   },
   "profile": {
     "title": {
@@ -162,6 +190,7 @@
     "title": "We need your location",
     "description": "To match your request with nearby donors and blood banks, we need to know your location. This helps us find help as quickly as possible.",
     "vetDescription": "To find veterinary clinics and emergency centers near you, we need to know your location. This helps us connect you with help as quickly as possible.",
+    "vetRegistrationDescription": "We need your location to receive emergency requests from pet owners nearby who need veterinary assistance.",
     "donorDescription": "We need your location to notify you about blood requests nearby that match your pet's blood type.",
     "regularDescription": "We need your location to show you nearby blood requests, donors, and veterinary clinics.",
     "gettingLocation": "Getting your location...",
@@ -234,8 +263,8 @@
       "wholeBlood": "whole blood",
       "packedRedBloodCells": "packed red blood cells"
     },
-    "nearbyNeedHelp": "Nearby requests",
-    "myRequest": "My request",
+    "helpOthers": "Help others",
+    "myRequests": "My request | My requests",
     "newNearbyAlert": "Pets need your help!",
     "petsNeedHelp": "{count} pet(s) nearby need blood donors",
     "urgent": "Urgent",
@@ -248,7 +277,10 @@
     "registerDonorFirst": "Register a donor first",
     "registerDonorFirstDesc": "Register your pet as a blood donor to see nearby requests that match their blood type.",
     "noActiveRequest": "No active request",
-    "noActiveRequestDesc": "You don't have an active emergency request. Send an SOS if you need help for your pet."
+    "noActiveRequestDesc": "You don't have an active emergency request. Send an SOS if you need help for your pet.",
+    "switchBetweenAlerts": "You have {count} active alerts. Tap to switch:",
+    "resolveConfirmTitle": "Mark as resolved?",
+    "resolveConfirmMessage": "Do you want to finish the emergency alert for {petName}?"
   },
   "animals": {
     "cat": "Cat",
@@ -278,6 +310,12 @@
     "recipients": "veterinary clinics and emergency centers",
     "sendRequest": "Send vet request",
     "legend": "Next, you will see a list of available vets and clinics near you ready to help."
+  },
+  "vetRegistrationNotifications": {
+    "description": "Get notified when pet owners nearby need veterinary assistance.",
+    "enabledDescription": "You'll receive emergency alerts from pet owners within 200km who need your help.",
+    "infoMessage": "You'll receive alerts for veterinary emergencies within 200km of your location.",
+    "sendRequest": "Complete registration"
   },
   "donor": {
     "title": {

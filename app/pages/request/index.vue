@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { usePetsStore } from '~/stores/pets'
 import { useRequestsStore } from '~/stores/requests'
+import { useUserStore } from '~/stores/user'
 
 const { t } = useI18n()
 const router = useRouter()
 const petsStore = usePetsStore()
 const requestsStore = useRequestsStore()
+const userStore = useUserStore()
 
 // Types
 type BloodUnitStatus = 'available' | 'reserved' | 'pending' | 'expired'
@@ -15,6 +17,31 @@ type RequestStatus = 'active' | 'expired' | 'cancelled'
 // View mode: 'donor' (see requests needing help) or 'requester' (my blood requests)
 type ViewMode = 'donor' | 'requester'
 const viewMode = ref<ViewMode>('requester')
+
+// For vets with multiple requests: track which request is selected
+const selectedRequestIndex = ref(0)
+
+// Check if user is a vet or blood bank (can have multiple requests)
+const isVetOrBloodBank = computed(() => userStore.isVet || userStore.isBloodBank)
+
+// All active blood requests for the current user
+const allActiveBloodRequests = computed(() => requestsStore.activeBloodRequests)
+
+// Current selected request (for vets, based on selection; for regular users, the only active one)
+const currentBloodRequest = computed(() => {
+  if (isVetOrBloodBank.value && allActiveBloodRequests.value.length > 1) {
+    return allActiveBloodRequests.value[selectedRequestIndex.value] || allActiveBloodRequests.value[0]
+  }
+  return requestsStore.activeBloodRequest
+})
+
+// Navigate between requests
+const selectRequest = (index: number) => {
+  if (index >= 0 && index < allActiveBloodRequests.value.length) {
+    selectedRequestIndex.value = index
+    updateCountdown()
+  }
+}
 
 // Determine available modes based on user state
 const hasDonorPets = computed(() => petsStore.hasDonors)
@@ -30,17 +57,17 @@ const matchingNearbyRequests = computed(() => {
   return requestsStore.matchingNearbyRequests(activeDonorBloodTypes)
 })
 
-// Request status derived from store
+// Request status derived from current request
 const requestStatus = computed<RequestStatus>(() => {
-  if (!storeActiveBloodRequest.value) return 'cancelled'
-  return storeActiveBloodRequest.value.status === 'active' ? 'active' :
-         storeActiveBloodRequest.value.status === 'expired' ? 'expired' : 'cancelled'
+  if (!currentBloodRequest.value) return 'cancelled'
+  return currentBloodRequest.value.status === 'active' ? 'active' :
+         currentBloodRequest.value.status === 'expired' ? 'expired' : 'cancelled'
 })
 
-// Request timing from store
+// Request timing from current request
 const requestCreatedAt = computed(() => {
-  if (!storeActiveBloodRequest.value) return Date.now()
-  return new Date(storeActiveBloodRequest.value.createdAt).getTime()
+  if (!currentBloodRequest.value) return Date.now()
+  return new Date(currentBloodRequest.value.createdAt).getTime()
 })
 const REQUEST_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours
 
@@ -55,13 +82,13 @@ const EXTEND_THRESHOLD_MS = 8 * 60 * 60 * 1000 // 8 hours
 const canExtend = computed(() => remainingMs.value > 0 && remainingMs.value <= EXTEND_THRESHOLD_MS)
 
 const updateCountdown = () => {
-  if (requestStatus.value !== 'active' || !storeActiveBloodRequest.value) {
+  if (requestStatus.value !== 'active' || !currentBloodRequest.value) {
     timeRemaining.value = '0h 0m'
     remainingMs.value = 0
     return
   }
 
-  const expiresAt = new Date(storeActiveBloodRequest.value.expiresAt).getTime()
+  const expiresAt = new Date(currentBloodRequest.value.expiresAt).getTime()
   const remaining = expiresAt - Date.now()
 
   if (remaining <= 0) {
@@ -123,29 +150,41 @@ watch(hasActiveBloodRequest, (newValue) => {
   }
 }, { immediate: true })
 
+// Confirmation modal state
+const showResolveModal = ref(false)
+
 // Actions
 const extendRequest = async () => {
-  if (storeActiveBloodRequest.value) {
-    await requestsStore.extendRequest(storeActiveBloodRequest.value.id)
+  if (currentBloodRequest.value) {
+    await requestsStore.extendRequest(currentBloodRequest.value.id)
     updateCountdown()
   }
 }
 
-const cancelRequest = async () => {
-  if (storeActiveBloodRequest.value) {
-    await requestsStore.resolveRequest(storeActiveBloodRequest.value.id)
+const openResolveModal = () => {
+  showResolveModal.value = true
+}
+
+const closeResolveModal = () => {
+  showResolveModal.value = false
+}
+
+const confirmResolveRequest = async () => {
+  if (currentBloodRequest.value) {
+    await requestsStore.resolveRequest(currentBloodRequest.value.id)
+    // Reset selection index if needed
+    if (selectedRequestIndex.value >= allActiveBloodRequests.value.length) {
+      selectedRequestIndex.value = Math.max(0, allActiveBloodRequests.value.length - 1)
+    }
 
     // Refresh nearby requests if user has active donors
     if (hasActiveDonors.value) {
       const donorBloodTypes = petsStore.getDonorBloodTypes
       await requestsStore.fetchNearbyRequests(donorBloodTypes)
-
-      // Switch to donor view if there are matching requests
-      if (matchingNearbyRequests.value.length > 0) {
-        viewMode.value = 'donor'
-      }
     }
+    // Stay on "My request" tab - don't auto-switch to donor view
   }
+  closeResolveModal()
 }
 
 const rebroadcastRequest = () => {
@@ -369,26 +408,29 @@ const statusConfig = computed(() => ({
 // Get route query params
 const route = useRoute()
 const requestType = computed<AnimalType>(() => {
-  if (storeActiveBloodRequest.value) return storeActiveBloodRequest.value.species
+  if (currentBloodRequest.value) return currentBloodRequest.value.species
   return (route.query.type as AnimalType) || 'cat'
 })
 const requestBloodType = computed(() => {
-  if (storeActiveBloodRequest.value) return formatBloodType(storeActiveBloodRequest.value.bloodType)
+  if (currentBloodRequest.value) return formatBloodType(currentBloodRequest.value.bloodType)
   return (route.query.bloodType as string) || 'A'
 })
 const patientName = computed(() => {
-  if (storeActiveBloodRequest.value) return storeActiveBloodRequest.value.petName
+  if (currentBloodRequest.value) return currentBloodRequest.value.petName
   return (route.query.patient as string) || 'Your pet'
 })
 
 // Format blood type for display
 const formatBloodType = (bloodType: string) => {
   const typeMap: Record<string, string> = {
+    'dea-positive': 'DEA 1.1+',
+    'dea-negative': 'DEA 1.1-',
     'deaPositive': 'DEA 1.1+',
     'deaNegative': 'DEA 1.1-',
     'DEA 1.1 Positive': 'DEA 1.1+',
     'DEA 1.1 Negative': 'DEA 1.1-',
-    'unknown': 'Unknown'
+    'unknown': 'Unknown',
+    'other': 'Other'
   }
   return typeMap[bloodType] || bloodType
 }
@@ -424,18 +466,6 @@ const activeTab = ref<'units' | 'donors'>('units')
       <div v-if="hasDonorPets && hasActiveBloodRequest" class="mt-3 flex gap-2">
         <button
           type="button"
-          @click="viewMode = 'donor'"
-          :class="[
-            'flex-1 py-2 px-3 text-sm font-medium rounded-lg transition',
-            viewMode === 'donor'
-              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-          ]"
-        >
-          {{ $t('request.nearbyNeedHelp') }}
-        </button>
-        <button
-          type="button"
           @click="viewMode = 'requester'"
           :class="[
             'flex-1 py-2 px-3 text-sm font-medium rounded-lg transition',
@@ -444,8 +474,44 @@ const activeTab = ref<'units' | 'donors'>('units')
               : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
           ]"
         >
-          {{ $t('request.myRequest') }}
+          {{ $t('request.myRequests', allActiveBloodRequests.length || 1) }}
         </button>
+        <button
+          type="button"
+          @click="viewMode = 'donor'"
+          :class="[
+            'flex-1 py-2 px-3 text-sm font-medium rounded-lg transition',
+            viewMode === 'donor'
+              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+          ]"
+        >
+          {{ $t('request.helpOthers') }}
+        </button>
+      </div>
+
+      <!-- Request Switcher for Vets with multiple active requests -->
+      <div v-if="isVetOrBloodBank && allActiveBloodRequests.length > 1 && viewMode === 'requester'" class="mt-3">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          {{ $t('request.switchBetweenAlerts', { count: allActiveBloodRequests.length }) }}
+        </p>
+        <div class="flex gap-2 overflow-x-auto pb-1">
+          <button
+            v-for="(request, index) in allActiveBloodRequests"
+            :key="request.id"
+            type="button"
+            @click="selectRequest(index)"
+            :class="[
+              'flex-shrink-0 py-2 px-3 text-sm font-medium rounded-lg transition flex items-center gap-2',
+              selectedRequestIndex === index
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+            ]"
+          >
+            <Icon :name="request.species === 'dog' ? 'heroicons:heart' : 'heroicons:heart'" class="w-4 h-4" />
+            <span>{{ request.petName }}</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -816,8 +882,8 @@ const activeTab = ref<'units' | 'donors'>('units')
     </div>
     </template>
 
-    <!-- Bottom Action - bottom-16 matches navbar h-16 -->
-    <div class="fixed bottom-16 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 md:left-24 md:right-24 lg:left-48 lg:right-48 z-40">
+    <!-- Bottom Action - positioned above navbar (h-16 + safe area) -->
+    <div class="fixed left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 md:left-24 md:right-24 lg:left-48 lg:right-48 z-40" style="bottom: calc(4rem + env(safe-area-inset-bottom, 0px))">
       <!-- Active Request Status -->
       <div v-if="requestStatus === 'active'" class="space-y-3">
         <!-- Status with countdown -->
@@ -853,7 +919,7 @@ const activeTab = ref<'units' | 'donors'>('units')
           </button>
           <button
             type="button"
-            @click="cancelRequest"
+            @click="openResolveModal"
             class="flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
           >
             <Icon name="heroicons:x-mark" class="w-4 h-4" />
@@ -896,6 +962,46 @@ const activeTab = ref<'units' | 'donors'>('units')
         </button>
       </div>
     </div>
+
+    <!-- Resolve Confirmation Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showResolveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/50" @click="closeResolveModal"></div>
+          <!-- Modal -->
+          <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+            <div class="text-center">
+              <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                <Icon name="heroicons:check-circle" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                {{ $t('request.resolveConfirmTitle') }}
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ $t('request.resolveConfirmMessage', { petName: patientName }) }}
+              </p>
+            </div>
+            <div class="flex gap-3">
+              <button
+                type="button"
+                @click="closeResolveModal"
+                class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+              >
+                {{ $t('common.no') }}
+              </button>
+              <button
+                type="button"
+                @click="confirmResolveRequest"
+                class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition"
+              >
+                {{ $t('common.yes') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
     </template>
 
     <!-- NO ACTIVE REQUEST: Show empty state -->

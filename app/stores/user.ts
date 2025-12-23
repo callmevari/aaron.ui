@@ -2,12 +2,21 @@ import { defineStore } from 'pinia'
 
 export type UserRole = 'donor' | 'emergency' | 'vet' | 'blood_bank' | 'regular'
 export type ProfileType = 'emergency' | 'donor' | 'vet' | 'regular' | null
+export type VetType = 'veterinary' | 'blood-bank' | 'both' | null
 
 export interface UserAuth {
   email: string
   firstName: string
   lastName: string
   phone: string
+}
+
+// Matrícula data for vet registration
+export interface MatriculaData {
+  numero: string
+  documentPhotos: string[]  // base64 photos (optional)
+  country: string           // Country code (e.g., 'AR', 'BR', 'OTHER')
+  countryName?: string      // Required when country is 'OTHER'
 }
 
 interface UserState {
@@ -17,6 +26,12 @@ interface UserState {
   // Profile flow completion state
   isProfileComplete: boolean
   profileType: ProfileType
+  // Vet/Blood Bank specific
+  vetType: VetType
+  // Vet matrícula data
+  matricula: MatriculaData | null
+  // Email verification for vets
+  isEmailVerified: boolean
   // Legacy registration state
   isRegistered: boolean
   roles: UserRole[]
@@ -53,6 +68,9 @@ const persistState = (state: UserState) => {
       auth: state.auth,
       isProfileComplete: state.isProfileComplete,
       profileType: state.profileType,
+      vetType: state.vetType,
+      matricula: state.matricula,
+      isEmailVerified: state.isEmailVerified,
       isRegistered: state.isRegistered,
       roles: state.roles,
       location: state.location
@@ -70,6 +88,9 @@ export const useUserStore = defineStore('user', {
       auth: persisted.auth ?? null,
       isProfileComplete: persisted.isProfileComplete ?? false,
       profileType: persisted.profileType ?? null,
+      vetType: persisted.vetType ?? null,
+      matricula: persisted.matricula ?? null,
+      isEmailVerified: persisted.isEmailVerified ?? false,
       isRegistered: persisted.isRegistered ?? false,
       roles: persisted.roles ?? [],
       location: persisted.location ?? null
@@ -81,7 +102,9 @@ export const useUserStore = defineStore('user', {
     isVet: (state) => state.roles.includes('vet'),
     isBloodBank: (state) => state.roles.includes('blood_bank'),
     hasLocation: (state) => state.location !== null,
-    userDisplayName: (state) => state.auth ? `${state.auth.firstName} ${state.auth.lastName}` : ''
+    userDisplayName: (state) => state.auth ? `${state.auth.firstName} ${state.auth.lastName}` : '',
+    hasMatricula: (state) => state.matricula !== null && state.matricula.numero.length > 0,
+    needsEmailVerification: (state) => state.roles.includes('vet') && !state.isEmailVerified
   },
 
   actions: {
@@ -120,11 +143,44 @@ export const useUserStore = defineStore('user', {
       persistState(this.$state)
     },
 
+    // Vet/Blood Bank specific actions
+    setVetType(vetType: VetType) {
+      this.vetType = vetType
+      persistState(this.$state)
+    },
+
+    // Set matrícula data for vet registration
+    setMatricula(matricula: MatriculaData) {
+      this.matricula = matricula
+
+      // Assign vet role
+      if (this.vetType === 'veterinary') {
+        this.addRole('vet')
+      } else if (this.vetType === 'blood-bank') {
+        this.addRole('blood_bank')
+      } else if (this.vetType === 'both') {
+        this.addRole('vet')
+        this.addRole('blood_bank')
+      }
+
+      persistState(this.$state)
+      console.log('📋 Matrícula registered:', matricula.numero)
+    },
+
+    // Set email verification status
+    setEmailVerified(verified: boolean) {
+      this.isEmailVerified = verified
+      persistState(this.$state)
+    },
+
     logout() {
       this.isAuthenticated = false
       this.auth = null
       this.isProfileComplete = false
       this.profileType = null
+      this.vetType = null
+      this.matricula = null
+      this.isEmailVerified = false
       this.isRegistered = false
       this.roles = []
       this.location = null

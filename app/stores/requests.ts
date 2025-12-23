@@ -259,9 +259,12 @@ export const useRequestsStore = defineStore('requests', {
   },
 
   getters: {
-    // Active blood request
+    // Active blood request (first one for backwards compatibility)
     activeBloodRequest: (state) => state.myBloodRequests.find(r => r.status === 'active'),
     hasActiveBloodRequest: (state) => state.myBloodRequests.some(r => r.status === 'active'),
+    // All active blood requests (for vets with multiple)
+    activeBloodRequests: (state) => state.myBloodRequests.filter(r => r.status === 'active'),
+    activeBloodRequestCount: (state) => state.myBloodRequests.filter(r => r.status === 'active').length,
 
     // Active vet request
     activeVetRequest: (state) => state.myVetRequests.find(r => r.status === 'active'),

@@ -19,22 +19,51 @@ const isSubmitting = ref(false)
 
 // Check if user can create requests
 // Regular users can only have 1 active request (blood OR vet, not both)
+// Vets/Blood Banks can have up to 5 active blood requests
+const MAX_VET_BLOOD_REQUESTS = 5
+
 const hasAnyActiveRequest = computed(() => {
   return requestsStore.hasActiveBloodRequest || requestsStore.hasActiveVetRequest
 })
 
+const activeBloodRequestCount = computed(() => {
+  return requestsStore.myBloodRequests.filter(r => r.status === 'active').length
+})
+
 const canCreateBloodRequest = computed(() => {
-  if (userStore.isVet || userStore.isBloodBank) return true
+  // Vets and Blood Banks can create up to 5 blood requests
+  if (userStore.isVet || userStore.isBloodBank) {
+    return activeBloodRequestCount.value < MAX_VET_BLOOD_REQUESTS
+  }
+  // Regular users can only have 1 active request total
   return !hasAnyActiveRequest.value
 })
 
 const canCreateVetRequest = computed(() => {
-  if (userStore.isVet || userStore.isBloodBank) return true
+  // Vets don't request vets - they ARE vets
+  if (userStore.isVet) return false
+  // Blood banks also don't request vets
+  if (userStore.isBloodBank) return false
+  // Regular users can only have 1 active request total
   return !hasAnyActiveRequest.value
 })
 
 // Message for why user can't create request
-const activeRequestMessage = computed(() => {
+const bloodRequestMessage = computed(() => {
+  if (userStore.isVet || userStore.isBloodBank) {
+    if (activeBloodRequestCount.value >= MAX_VET_BLOOD_REQUESTS) {
+      return t('sos.maxRequestsReached', { count: MAX_VET_BLOOD_REQUESTS })
+    }
+    return ''
+  }
+  if (requestsStore.hasActiveBloodRequest) return t('sos.alreadyActiveBlood')
+  if (requestsStore.hasActiveVetRequest) return t('sos.alreadyActiveVet')
+  return ''
+})
+
+const vetRequestMessage = computed(() => {
+  if (userStore.isVet) return t('sos.vetsCannotRequestVets')
+  if (userStore.isBloodBank) return t('sos.bloodBanksCannotRequestVets')
   if (requestsStore.hasActiveBloodRequest) return t('sos.alreadyActiveBlood')
   if (requestsStore.hasActiveVetRequest) return t('sos.alreadyActiveVet')
   return ''
@@ -250,8 +279,41 @@ const handleSubmit = async () => {
     </div>
 
     <!-- Content -->
-    <div class="flex-1 overflow-y-auto px-4 py-6 pb-24">
+    <div class="flex-1 overflow-y-auto px-4 py-6 pb-32">
       <div class="max-w-sm mx-auto">
+        <!-- Active Alerts Banner for Vets -->
+        <div
+          v-if="(userStore.isVet || userStore.isBloodBank) && activeBloodRequestCount > 0 && step === 'type'"
+          class="mb-6 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
+                  <Icon name="heroicons:bell-alert" class="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">
+                  {{ activeBloodRequestCount }}
+                </span>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                  {{ $t('sos.activeAlerts', { count: activeBloodRequestCount }) }}
+                </p>
+                <p class="text-xs text-orange-600 dark:text-orange-400">
+                  {{ $t('sos.remainingAlerts', { remaining: MAX_VET_BLOOD_REQUESTS - activeBloodRequestCount }) }}
+                </p>
+              </div>
+            </div>
+            <NuxtLink
+              to="/request"
+              class="px-3 py-1.5 text-sm font-medium text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/40 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/60 transition"
+            >
+              {{ $t('sos.manageAlerts') }}
+            </NuxtLink>
+          </div>
+        </div>
+
         <Transition name="fade" mode="out-in">
           <!-- Step: Emergency Type Selection -->
           <div v-if="step === 'type'" key="type" class="space-y-4">
@@ -286,7 +348,7 @@ const handleSubmit = async () => {
                 <p class="font-semibold text-gray-900 dark:text-white">{{ $t('sos.needBlood') }}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('sos.needBloodDesc') }}</p>
                 <p v-if="!canCreateBloodRequest" class="text-xs text-red-500 dark:text-red-400 mt-1">
-                  {{ activeRequestMessage }}
+                  {{ bloodRequestMessage }}
                 </p>
               </div>
               <Icon v-if="canCreateBloodRequest" name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
@@ -311,7 +373,7 @@ const handleSubmit = async () => {
                 <p class="font-semibold text-gray-900 dark:text-white">{{ $t('sos.needVet') }}</p>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('sos.needVetDesc') }}</p>
                 <p v-if="!canCreateVetRequest" class="text-xs text-red-500 dark:text-red-400 mt-1">
-                  {{ activeRequestMessage }}
+                  {{ vetRequestMessage }}
                 </p>
               </div>
               <Icon v-if="canCreateVetRequest" name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />

@@ -28,6 +28,7 @@ type Step =
   | 'emergency-animal'
   | 'donor-animal'
   | 'vet-type'
+  | 'matricula'
   | 'blood-dog-form'
   | 'blood-cat-form'
   | 'vet-dog-form'
@@ -43,6 +44,14 @@ const profileType = ref<ProfileType | null>(null)
 const emergencyType = ref<EmergencyType | null>(null)
 const animalType = ref<AnimalType | null>(null)
 const vetType = ref<VetType | null>(null)
+
+// Matrícula form for vet registration
+const matriculaForm = reactive({
+  numero: '',
+  documentPhotos: [] as string[], // Optional document photos (base64)
+  country: 'AR', // Default to Argentina
+  countryName: '' // Required when country is 'OTHER'
+})
 
 // Blood emergency form - Cat
 const catBloodForm = reactive({
@@ -444,6 +453,52 @@ const handlePhotoUpload = async (event: Event, formType: 'cat' | 'dog') => {
   reader.readAsDataURL(file)
 }
 
+// Handle matrícula document photo upload (optional, multiple allowed)
+const handleMatriculaPhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files) return
+
+  for (const file of Array.from(files)) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string
+      matriculaForm.documentPhotos.push(base64)
+    }
+    reader.readAsDataURL(file)
+  }
+  // Reset input so same file can be selected again
+  target.value = ''
+}
+
+// Remove a document photo
+const removeMatriculaPhoto = (index: number) => {
+  matriculaForm.documentPhotos.splice(index, 1)
+}
+
+// Check if matrícula form is valid (número is required, countryName required if country is OTHER)
+const isMatriculaFormValid = computed(() => {
+  if (!matriculaForm.numero.trim().length) return false
+  if (matriculaForm.country === 'OTHER' && !matriculaForm.countryName.trim().length) return false
+  return true
+})
+
+// Submit matrícula and continue to location step
+const submitMatricula = () => {
+  if (!isMatriculaFormValid.value) return
+
+  // Store matrícula data
+  userStore.setMatricula({
+    numero: matriculaForm.numero.trim(),
+    documentPhotos: matriculaForm.documentPhotos,
+    country: matriculaForm.country,
+    countryName: matriculaForm.countryName.trim()
+  })
+
+  // Continue to location step
+  step.value = 'location-modal'
+}
+
 const requestLocation = async () => {
   userLocation.isLoading = true
   userLocation.error = ''
@@ -588,17 +643,27 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
         const iconUrl = `${window.location.origin}/img/app-icon.png`
 
         setTimeout(() => {
-          new Notification(`🩸 ${t('notifications.simulated.bloodUnitsTitle')}`, {
+          const notification = new Notification(`🩸 ${t('notifications.simulated.bloodUnitsTitle')}`, {
             body: t('notifications.simulated.bloodUnitsBody', { petName: patientName }),
             icon: iconUrl
           })
+          notification.onclick = () => {
+            window.focus()
+            navigateTo('/request')
+            notification.close()
+          }
         }, 10000)
 
         setTimeout(() => {
-          new Notification(`${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`, {
+          const notification = new Notification(`${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`, {
             body: t('notifications.simulated.donorsBody', { petName: patientName }),
             icon: iconUrl
           })
+          notification.onclick = () => {
+            window.focus()
+            navigateTo('/request')
+            notification.close()
+          }
         }, 15000)
       }
       return
@@ -607,6 +672,8 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
     const { LocalNotifications } = await import('@capacitor/local-notifications')
 
     const now = Date.now()
+
+    // Note: Notification tap handling is done app-wide in plugins/notifications.client.ts
 
     await LocalNotifications.schedule({
       notifications: [
@@ -738,7 +805,7 @@ const finalSubmit = async () => {
       await petsStore.registerDonor({
         name: donorForm.petName,
         species,
-        photoUrl: '',
+        photoUrl: donorForm.photoUrl || '',
         ageYears: donorForm.ageYears || 3,
         weightKg: donorForm.weightKg || 25,
         bloodType: formattedBloodType
@@ -782,8 +849,9 @@ const finalSubmit = async () => {
 
 const selectVetType = (type: VetType) => {
   vetType.value = type
-  // TODO: Navigate to next step or save profile
-  console.log('Profile complete:', { profileType: profileType.value, vetType: type })
+  userStore.setVetType(type)
+  // Navigate to matrícula form
+  step.value = 'matricula'
 }
 
 const goBack = () => {
@@ -799,6 +867,13 @@ const goBack = () => {
   } else if (step.value === 'vet-type') {
     step.value = 'profile'
     profileType.value = null
+  } else if (step.value === 'matricula') {
+    step.value = 'vet-type'
+    vetType.value = null
+    matriculaForm.numero = ''
+    matriculaForm.documentPhotos = []
+    matriculaForm.country = 'AR'
+    matriculaForm.countryName = ''
   } else if (step.value === 'blood-dog-form' || step.value === 'blood-cat-form') {
     step.value = 'emergency-animal'
     animalType.value = null
@@ -815,6 +890,8 @@ const goBack = () => {
       profileType.value = null
     } else if (profileType.value === 'donor') {
       step.value = animalType.value === 'cat' ? 'donor-cat-form' : 'donor-dog-form'
+    } else if (profileType.value === 'vet') {
+      step.value = 'matricula'
     } else if (emergencyType.value === 'blood') {
       step.value = animalType.value === 'cat' ? 'blood-cat-form' : 'blood-dog-form'
     } else if (emergencyType.value === 'vet') {
@@ -836,6 +913,7 @@ const stepTitle = computed(() => {
     case 'emergency-animal': return t('profile.title.emergencyAnimal')
     case 'donor-animal': return t('profile.title.donorAnimal')
     case 'vet-type': return t('profile.title.vetType')
+    case 'matricula': return t('matricula.title')
     case 'blood-dog-form': return t('profile.title.bloodDogForm')
     case 'blood-cat-form': return t('profile.title.bloodCatForm')
     case 'vet-dog-form': return t('profile.title.vetDogForm')
@@ -1063,34 +1141,156 @@ const stepTitle = computed(() => {
               <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
             </button>
 
-            <button
-              type="button"
-              @click="selectVetType('blood-bank')"
-              class="w-full p-5 flex items-center gap-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 transition-all group"
-            >
-              <div class="w-14 h-14 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Icon name="heroicons:building-library" class="w-7 h-7 text-red-600 dark:text-red-400" />
+            <!-- Blood Bank - Coming Soon -->
+            <div class="w-full p-5 flex items-center gap-4 rounded-2xl bg-gray-100 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed">
+              <div class="w-14 h-14 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <Icon name="heroicons:building-library" class="w-7 h-7 text-red-400 dark:text-red-500" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vetType.bloodBank') }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.bloodBankSubtitle') }}</p>
+                <p class="text-base font-semibold text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.bloodBank') }}</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500">{{ $t('profile.vetType.bloodBankSubtitle') }}</p>
               </div>
-              <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
-            </button>
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                {{ $t('common.comingSoon') }}
+              </span>
+            </div>
 
-            <button
-              type="button"
-              @click="selectVetType('both')"
-              class="w-full p-5 flex items-center gap-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 transition-all group"
-            >
-              <div class="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Icon name="heroicons:building-office" class="w-7 h-7 text-purple-600 dark:text-purple-400" />
+            <!-- Both - Coming Soon -->
+            <div class="w-full p-5 flex items-center gap-4 rounded-2xl bg-gray-100 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 opacity-60 cursor-not-allowed">
+              <div class="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <Icon name="heroicons:building-office" class="w-7 h-7 text-purple-400 dark:text-purple-500" />
               </div>
               <div class="flex-1 text-left">
-                <p class="text-base font-semibold text-gray-900 dark:text-white">{{ $t('profile.vetType.both') }}</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.bothSubtitle') }}</p>
+                <p class="text-base font-semibold text-gray-500 dark:text-gray-400">{{ $t('profile.vetType.both') }}</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500">{{ $t('profile.vetType.bothSubtitle') }}</p>
               </div>
-              <Icon name="heroicons:chevron-right" class="w-5 h-5 text-gray-400" />
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                {{ $t('common.comingSoon') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Step: Matrícula Form -->
+          <div v-else-if="step === 'matricula'" key="matricula" class="space-y-6">
+            <div class="flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Icon name="heroicons:identification" class="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+
+            <!-- Matrícula number input -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('matricula.numeroLabel') }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="matriculaForm.numero"
+                type="text"
+                :placeholder="$t('matricula.numeroPlaceholder')"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-form-type="other"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+              />
+            </div>
+
+            <!-- Optional document photos -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('matricula.documentsLabel') }}
+                <span class="text-gray-400 font-normal">({{ $t('common.optional') }})</span>
+              </label>
+
+              <!-- Photo preview grid -->
+              <div v-if="matriculaForm.documentPhotos.length > 0" class="grid grid-cols-3 gap-2 mb-3">
+                <div
+                  v-for="(photo, index) in matriculaForm.documentPhotos"
+                  :key="index"
+                  class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700"
+                >
+                  <img :src="photo" class="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    @click="removeMatriculaPhoto(index)"
+                    class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
+                  >
+                    <Icon name="heroicons:x-mark" class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Upload button -->
+              <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors bg-gray-50 dark:bg-gray-800/50">
+                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <Icon name="heroicons:camera" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('matricula.addPhoto') }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t('matricula.addPhotoHint') }}</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="hidden"
+                  @change="handleMatriculaPhotoUpload"
+                />
+              </label>
+            </div>
+
+            <!-- Country selector -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {{ $t('matricula.countryLabel') }}
+              </label>
+              <select
+                v-model="matriculaForm.country"
+                class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-orange-500 focus:ring-orange-500 appearance-none"
+                style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%236b7280%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem;"
+              >
+                <option value="" disabled>{{ $t('matricula.countryPlaceholder') }}</option>
+                <option value="AR">Argentina</option>
+                <option value="BR">Brasil</option>
+                <option value="CL">Chile</option>
+                <option value="CO">Colombia</option>
+                <option value="MX">México</option>
+                <option value="PE">Perú</option>
+                <option value="UY">Uruguay</option>
+                <option value="OTHER">Other / Otro</option>
+              </select>
+              <!-- Country name input when Other is selected -->
+              <input
+                v-if="matriculaForm.country === 'OTHER'"
+                v-model="matriculaForm.countryName"
+                type="text"
+                :placeholder="$t('matricula.countryNamePlaceholder')"
+                autocomplete="off"
+                class="mt-2 py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
+              />
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                {{ $t('matricula.countryHint') }}
+              </p>
+            </div>
+
+            <!-- Info box -->
+            <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <p class="text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
+                <Icon name="heroicons:information-circle" class="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{{ $t('matricula.infoMessage') }}</span>
+              </p>
+            </div>
+
+            <!-- Continue button -->
+            <button
+              type="button"
+              :disabled="!isMatriculaFormValid"
+              @click="submitMatricula"
+              class="w-full py-4 px-6 rounded-xl font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="isMatriculaFormValid ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400'"
+            >
+              {{ $t('common.continue') }}
             </button>
           </div>
 
@@ -1243,7 +1443,7 @@ const stepTitle = computed(() => {
               @mousedown.prevent="submitDogBloodForm"
               @touchend.prevent="submitDogBloodForm"
               :disabled="!dogBloodFormValid"
-              class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3 px-4 mb-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ $t('bloodForm.findNearbyHelp') }}
               <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
@@ -1399,7 +1599,7 @@ const stepTitle = computed(() => {
               @mousedown.prevent="submitCatBloodForm"
               @touchend.prevent="submitCatBloodForm"
               :disabled="!catBloodFormValid"
-              class="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full py-3 px-4 mb-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-orange-600 text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ $t('bloodForm.findNearbyHelp') }}
               <Icon name="heroicons:magnifying-glass" class="w-4 h-4" />
@@ -1941,9 +2141,11 @@ const stepTitle = computed(() => {
                   ? $t('location.regularDescription')
                   : profileType === 'donor'
                     ? $t('location.donorDescription')
-                    : emergencyType === 'vet'
-                      ? $t('location.vetDescription')
-                      : $t('location.description')
+                    : profileType === 'vet'
+                      ? $t('location.vetRegistrationDescription')
+                      : emergencyType === 'vet'
+                        ? $t('location.vetDescription')
+                        : $t('location.description')
                 }}
               </p>
             </div>
@@ -2071,9 +2273,11 @@ const stepTitle = computed(() => {
                   ? $t('regularNotifications.description')
                   : profileType === 'donor'
                     ? $t('donorNotifications.description', { petName: patientName || 'your pet' })
-                    : emergencyType === 'vet'
-                      ? $t('vetNotifications.description', { petName: patientName || 'your pet' })
-                      : $t('notifications.description', { petName: patientName || 'your pet' })
+                    : profileType === 'vet'
+                      ? $t('vetRegistrationNotifications.description')
+                      : emergencyType === 'vet'
+                        ? $t('vetNotifications.description', { petName: patientName || 'your pet' })
+                        : $t('notifications.description', { petName: patientName || 'your pet' })
                 }}
               </p>
             </div>
@@ -2108,7 +2312,8 @@ const stepTitle = computed(() => {
                 <span class="text-base font-medium text-green-700 dark:text-green-300">{{ $t('notifications.enabled') }}</span>
               </div>
 
-              <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+              <!-- Hide for vet flow since the info message below says the same thing -->
+              <p v-if="profileType !== 'vet'" class="text-sm text-center text-gray-500 dark:text-gray-400">
                 {{ profileType === 'regular'
                   ? $t('regularNotifications.enabledDescription')
                   : profileType === 'donor'
@@ -2155,9 +2360,11 @@ const stepTitle = computed(() => {
                     ? $t('regularNotifications.infoMessage')
                     : profileType === 'donor'
                       ? $t('donorNotifications.infoMessage')
-                      : emergencyType === 'vet'
-                        ? $t('vetNotifications.infoMessage', { recipients: $t('vetNotifications.recipients') })
-                        : $t('notifications.infoMessage', { recipients: $t('notifications.recipients') })
+                      : profileType === 'vet'
+                        ? $t('vetRegistrationNotifications.infoMessage')
+                        : emergencyType === 'vet'
+                          ? $t('vetNotifications.infoMessage', { recipients: $t('vetNotifications.recipients') })
+                          : $t('notifications.infoMessage', { recipients: $t('notifications.recipients') })
                   }}
                 </p>
               </div>
@@ -2185,7 +2392,16 @@ const stepTitle = computed(() => {
                 {{ $t('notifications.sendingRequest') }}
               </template>
               <template v-else>
-                {{ profileType === 'regular' ? $t('regularNotifications.sendRequest') : profileType === 'donor' ? $t('donorNotifications.sendRequest') : emergencyType === 'vet' ? $t('vetNotifications.sendRequest') : $t('notifications.sendRequest') }}
+                {{ profileType === 'regular'
+                  ? $t('regularNotifications.sendRequest')
+                  : profileType === 'donor'
+                    ? $t('donorNotifications.sendRequest')
+                    : profileType === 'vet'
+                      ? $t('vetRegistrationNotifications.sendRequest')
+                      : emergencyType === 'vet'
+                        ? $t('vetNotifications.sendRequest')
+                        : $t('notifications.sendRequest')
+                }}
                 <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
               </template>
             </button>
