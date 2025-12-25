@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { useRequestsStore } from '~/stores/requests'
+import { useNotificationsStore } from '~/stores/notifications'
 
 const { t } = useI18n()
 const router = useRouter()
 const requestsStore = useRequestsStore()
+const notificationsStore = useNotificationsStore()
+
+// Navigate to notifications
+const goToNotifications = () => {
+  navigateTo('/notifications')
+}
 
 // Types
 type AnimalType = 'cat' | 'dog'
@@ -68,6 +75,10 @@ onUnmounted(() => {
   if (countdownInterval) clearInterval(countdownInterval)
 })
 
+// Resolve confirmation modal
+const showResolveModal = ref(false)
+const petName = computed(() => storeActiveVetRequest.value?.patientName || '')
+
 // Actions
 const extendRequest = async () => {
   if (!canExtend.value || !storeActiveVetRequest.value) return
@@ -75,10 +86,15 @@ const extendRequest = async () => {
   updateCountdown()
 }
 
-const cancelRequest = async () => {
+const openResolveModal = () => {
+  showResolveModal.value = true
+}
+
+const confirmResolve = async () => {
   if (storeActiveVetRequest.value) {
     await requestsStore.resolveRequest(storeActiveVetRequest.value.id)
   }
+  showResolveModal.value = false
 }
 
 const rebroadcastRequest = () => {
@@ -231,6 +247,7 @@ const googleMapsSearchUrl = computed(() => {
             <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('vetRequest.title') }}</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               {{ $t('vetRequest.forAnimal', { animalType: requestType === 'cat' ? $t('animals.cat') : $t('animals.dog') }) }}
+              <span v-if="petName">({{ petName }})</span>
             </p>
           </template>
           <template v-else>
@@ -238,12 +255,27 @@ const googleMapsSearchUrl = computed(() => {
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('vetRequest.browseSubtitle') }}</p>
           </template>
         </div>
-        <div v-if="hasActiveVetRequest" class="flex items-center gap-2">
-          <span class="relative flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-          </span>
-          <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ $t('request.active') }}</span>
+        <div class="flex items-center gap-2">
+          <div v-if="hasActiveVetRequest" class="flex items-center gap-2">
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
+            <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ $t('request.active') }}</span>
+          </div>
+          <button
+            type="button"
+            @click="goToNotifications"
+            class="relative p-2 -mr-2 text-gray-500 dark:text-gray-400"
+          >
+            <Icon name="heroicons:bell" class="w-6 h-6" />
+            <span
+              v-if="notificationsStore.unreadCount > 0"
+              class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] font-medium text-white flex items-center justify-center"
+            >
+              {{ notificationsStore.unreadCount > 9 ? '9+' : notificationsStore.unreadCount }}
+            </span>
+          </button>
         </div>
       </div>
     </div>
@@ -421,7 +453,7 @@ const googleMapsSearchUrl = computed(() => {
           </button>
           <button
             type="button"
-            @click="cancelRequest"
+            @click="openResolveModal"
             class="flex-1 py-2.5 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
           >
             <Icon name="heroicons:x-mark" class="w-4 h-4" />
@@ -464,6 +496,39 @@ const googleMapsSearchUrl = computed(() => {
         </button>
       </div>
     </div>
+
+    <!-- Resolve Confirmation Modal -->
+    <Teleport to="body">
+      <div v-if="showResolveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50" @click="showResolveModal = false"></div>
+        <!-- Modal -->
+        <div class="relative bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-xl">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {{ $t('request.resolveConfirmTitle') }}
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            {{ $t('request.resolveConfirmMessage', { petName: petName }) }}
+          </p>
+          <div class="flex gap-3">
+            <button
+              type="button"
+              @click="showResolveModal = false"
+              class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+            >
+              {{ $t('profilePage.cancel') }}
+            </button>
+            <button
+              type="button"
+              @click="confirmResolve"
+              class="flex-1 py-2.5 px-4 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition"
+            >
+              {{ $t('common.confirm') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Bottom Navigation -->
     <BottomNav />

@@ -11,7 +11,7 @@
     "welcomeTitle": "Donor registered!",
     "welcomeMessage": "{petName} is now registered as a blood donor. Thank you for helping save lives!",
     "myDonors": "My Donors",
-    "addPet": "Add pet",
+    "addPet": "Add donor",
     "bloodType": "Blood type",
     "years": "years",
     "noDonorsTitle": "No donors yet",
@@ -219,7 +219,7 @@
     "blocked": "Notifications blocked",
     "blockedDescription": "Please enable notifications in your device settings to receive alerts when blood becomes available.",
     "unsupported": "Push notifications are not supported in this environment. You can still track your request in the app.",
-    "infoMessage": "Your request will be sent to {recipients} within 200km of your location.",
+    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
     "recipients": "donors, veterinaries, and blood banks",
     "sendRequest": "Send blood request",
     "sendingRequest": "Sending request...",
@@ -306,15 +306,15 @@
   "vetNotifications": {
     "description": "Get notified instantly when a vet becomes ready to help {petName}.",
     "enabledDescription": "You'll receive alerts when clinics are ready to assist with your emergency.",
-    "infoMessage": "Your request will be sent to {recipients} within 200km of your location.",
+    "infoMessage": "Your request will be sent to {recipients} within 100km of your location.",
     "recipients": "veterinary clinics and emergency centers",
     "sendRequest": "Send vet request",
     "legend": "Next, you will see a list of available vets and clinics near you ready to help."
   },
   "vetRegistrationNotifications": {
     "description": "Get notified when pet owners nearby need veterinary assistance.",
-    "enabledDescription": "You'll receive emergency alerts from pet owners within 200km who need your help.",
-    "infoMessage": "You'll receive alerts for veterinary emergencies within 200km of your location.",
+    "enabledDescription": "You'll receive emergency alerts from pet owners within 100km who need your help.",
+    "infoMessage": "You'll receive alerts for veterinary emergencies within 100km of your location.",
     "sendRequest": "Complete registration"
   },
   "donor": {
@@ -348,15 +348,32 @@
   "donorNotifications": {
     "description": "Get notified when pets nearby need blood donors that match {petName}.",
     "emergencyDescription": "Be available 24/7 to help in critical emergencies. Your pet could save a life.",
-    "enabledDescription": "You'll receive alerts for blood requests within 200km that match your pet's blood type.",
+    "enabledDescription": "You'll receive alerts for blood requests within 100km that match your pet's blood type.",
     "onlyMatchingRequests": "We'll only notify you about matching blood requests.",
-    "infoMessage": "You'll receive alerts for blood requests within 200km that match your pet's blood type.",
+    "infoMessage": "You'll receive alerts for blood requests within 100km that match your pet's blood type.",
     "sendRequest": "Complete registration"
   },
   "regularNotifications": {
     "description": "Get notified about blood requests, available donors, and veterinary updates in your area.",
-    "enabledDescription": "You'll receive alerts about blood emergencies and available help within 200km.",
-    "infoMessage": "You'll receive updates about blood requests and donors within 200km of your location.",
+    "enabledDescription": "You'll receive alerts about blood emergencies and available help within 100km.",
+    "infoMessage": "You'll receive updates about blood requests and donors within 100km of your location.",
     "sendRequest": "Complete registration"
+  },
+  "profilePage": {
+    "personalInfo": "Personal Information",
+    "professionalInfo": "Professional Information",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "logout": "Log out"
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "emptyDesc": "You'll see alerts about blood requests and donors here.",
+    "justNow": "Just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago"
   }
 }

@@ -30,6 +30,7 @@ export interface VetRequest {
   id: string
   type: 'vet'
   species: AnimalType
+  patientName: string
   description?: string
   status: RequestStatus
   location: {

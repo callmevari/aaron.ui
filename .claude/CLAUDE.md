@@ -77,7 +77,7 @@ This is a **frontend-only project**. All data is mocked/logged to console. Backe
 
 ## Critical Features
 
-1. **Location**: Geolocation with manual city fallback (200km default radius)
+1. **Location**: Geolocation with manual city fallback (100km default radius)
 2. **Emergency notifications (24/7)**: Crucial opt-in for night emergencies - this is the core network feature
 3. **Regular notifications**: New donors, blood units, nearby requests
 

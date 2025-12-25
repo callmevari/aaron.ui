@@ -2,6 +2,7 @@
 import { useRequestsStore } from '~/stores/requests'
 import { usePetsStore } from '~/stores/pets'
 import { useUserStore } from '~/stores/user'
+import { useNotificationsStore } from '~/stores/notifications'
 import type { BloodType, AnimalType as PetAnimalType } from '~/stores/pets'
 
 const { t } = useI18n()
@@ -9,6 +10,7 @@ const router = useRouter()
 const requestsStore = useRequestsStore()
 const petsStore = usePetsStore()
 const userStore = useUserStore()
+const notificationsStore = useNotificationsStore()
 
 // Redirect if profile is already complete
 onMounted(() => {
@@ -92,27 +94,23 @@ const dogBloodFormValid = computed(() => {
 // Vet emergency form - Cat
 const vetCatForm = reactive({
   patientName: '',
-  bloodType: '' as '' | 'A' | 'B' | 'AB' | 'unknown',
-  hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
   whatHappened: ''
 })
 
 const vetCatFormValid = computed(() => {
   return vetCatForm.patientName.trim() &&
-         vetCatForm.hasBeenTyped
+         vetCatForm.whatHappened.trim()
 })
 
 // Vet emergency form - Dog
 const vetDogForm = reactive({
   patientName: '',
-  bloodType: '' as '' | 'dea-positive' | 'dea-negative' | 'other' | 'unknown',
-  hasBeenTyped: '' as '' | 'yes' | 'no' | 'unknown',
   whatHappened: ''
 })
 
 const vetDogFormValid = computed(() => {
   return vetDogForm.patientName.trim() &&
-         vetDogForm.hasBeenTyped
+         vetDogForm.whatHappened.trim()
 })
 
 // Donor form - Cat
@@ -283,8 +281,8 @@ const requestNotificationPermission = async () => {
   }
 }
 
-// Location radius (default 200km)
-const searchRadius = ref(200)
+// Location radius (default 100km)
+const searchRadius = ref(100)
 
 // Options for forms
 const dogBloodTypeOptions = computed(() => [
@@ -675,12 +673,17 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
 
     // Note: Notification tap handling is done app-wide in plugins/notifications.client.ts
 
+    const bloodUnitsTitle = `🩸 ${t('notifications.simulated.bloodUnitsTitle')}`
+    const bloodUnitsBody = t('notifications.simulated.bloodUnitsBody', { petName: patientName })
+    const donorsTitle = `${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`
+    const donorsBody = t('notifications.simulated.donorsBody', { petName: patientName })
+
     await LocalNotifications.schedule({
       notifications: [
         {
           id: Math.floor(Math.random() * 100000),
-          title: `🩸 ${t('notifications.simulated.bloodUnitsTitle')}`,
-          body: t('notifications.simulated.bloodUnitsBody', { petName: patientName }),
+          title: bloodUnitsTitle,
+          body: bloodUnitsBody,
           schedule: { at: new Date(now + 10000) }, // 10 seconds
           sound: 'default',
           extra: {
@@ -690,8 +693,8 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
         },
         {
           id: Math.floor(Math.random() * 100000),
-          title: `${animalType === 'cat' ? '🐱' : '🐶'} ${t('notifications.simulated.donorsTitle')}`,
-          body: t('notifications.simulated.donorsBody', { petName: patientName }),
+          title: donorsTitle,
+          body: donorsBody,
           schedule: { at: new Date(now + 15000) }, // 15 seconds (5 seconds after first)
           sound: 'default',
           extra: {
@@ -700,6 +703,20 @@ const scheduleSimulatedNotifications = async (patientName: string, animalType: s
           }
         }
       ]
+    })
+
+    // Also add to notifications store for history
+    notificationsStore.addNotification({
+      type: 'BLOOD_UNIT_AVAILABLE',
+      title: bloodUnitsTitle,
+      body: bloodUnitsBody,
+      extra: { animalType }
+    })
+    notificationsStore.addNotification({
+      type: 'DONOR_AVAILABLE',
+      title: donorsTitle,
+      body: donorsBody,
+      extra: { animalType }
     })
 
     console.log('📱 Simulated notifications scheduled: 10s (blood units) and 15s (donors)')
@@ -775,6 +792,7 @@ const finalSubmit = async () => {
       await requestsStore.createVetRequest({
         type: 'vet',
         species,
+        patientName: vetForm.patientName,
         description: vetForm.whatHappened || undefined,
         location: {
           lat: userLocation.latitude || 0,
@@ -1626,52 +1644,6 @@ const stepTitle = computed(() => {
               />
             </div>
 
-            <!-- Has Been Blood Typed -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.dog').toLowerCase() }) }}
-              </label>
-              <div class="grid grid-cols-3 gap-2">
-                <button
-                  v-for="option in yesNoOptions"
-                  :key="option.value"
-                  type="button"
-                  @click="vetDogForm.hasBeenTyped = option.value"
-                  :class="[
-                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
-                    vetDogForm.hasBeenTyped === option.value
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Blood Type -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('bloodForm.bloodType') }}
-              </label>
-              <div class="grid grid-cols-1 gap-2">
-                <button
-                  v-for="option in dogBloodTypeOptions"
-                  :key="option.value"
-                  type="button"
-                  @click="vetDogForm.bloodType = option.value"
-                  :class="[
-                    'py-3 px-4 text-sm font-medium rounded-lg border-2 transition-all text-left',
-                    vetDogForm.bloodType === option.value
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-
             <!-- What Happened -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1721,52 +1693,6 @@ const stepTitle = computed(() => {
                 data-form-type="other"
                 class="py-3 px-4 block w-full border border-gray-300 dark:border-gray-700 rounded-lg text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-orange-500 focus:ring-orange-500"
               />
-            </div>
-
-            <!-- Has Been Blood Typed -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('bloodForm.hasBeenTyped', { animal: $t('animals.cat').toLowerCase() }) }}
-              </label>
-              <div class="grid grid-cols-3 gap-2">
-                <button
-                  v-for="option in yesNoOptions"
-                  :key="option.value"
-                  type="button"
-                  @click="vetCatForm.hasBeenTyped = option.value"
-                  :class="[
-                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
-                    vetCatForm.hasBeenTyped === option.value
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Blood Type -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ $t('bloodForm.bloodType') }}
-              </label>
-              <div class="grid grid-cols-4 gap-2">
-                <button
-                  v-for="type in ['A', 'B', 'AB', 'unknown'] as const"
-                  :key="type"
-                  type="button"
-                  @click="vetCatForm.bloodType = type"
-                  :class="[
-                    'py-3 px-2 text-sm font-medium rounded-lg border-2 transition-all',
-                    vetCatForm.bloodType === type
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
-                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                  ]"
-                >
-                  {{ type === 'unknown' ? $t('common.unknown') : type }}
-                </button>
-              </div>
             </div>
 
             <!-- What Happened -->

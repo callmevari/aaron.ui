@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePetsStore } from '~/stores/pets'
 import { useRequestsStore } from '~/stores/requests'
+import { useNotificationsStore } from '~/stores/notifications'
 import { Capacitor } from '@capacitor/core'
 import type { BloodType, AnimalType as PetAnimalType } from '~/stores/pets'
 
@@ -8,6 +9,7 @@ const { t } = useI18n()
 const router = useRouter()
 const petsStore = usePetsStore()
 const requestsStore = useRequestsStore()
+const notificationsStore = useNotificationsStore()
 
 // Trigger notification for matching nearby requests
 const triggerNearbyRequestNotification = async (matchingCount: number, species: PetAnimalType) => {
@@ -42,6 +44,14 @@ const triggerNearbyRequestNotification = async (matchingCount: number, species: 
         new Notification(title, { body })
       }
     }
+
+    // Also add to notifications store for history
+    notificationsStore.addNotification({
+      type: 'NEARBY_BLOOD_REQUEST',
+      title,
+      body,
+      extra: { species, matchingCount }
+    })
   } catch (e) {
     console.error('Failed to trigger notification:', e)
   }

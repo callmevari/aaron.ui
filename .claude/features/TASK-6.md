@@ -57,13 +57,13 @@ Blood type options:
 - Request geolocation permission
 - Show map with current location
 - Allow manual location search
-- Set search radius (default 200km)
+- Set search radius (default 100km)
 - Explain: "So we can notify you about blood requests nearby"
 
 ### Step 4: Notification Preferences
 Main message: "Get notified when pets nearby need blood donors that match your pet"
 
-- **Regular notifications**: New blood requests matching your pet's blood type within 200km
+- **Regular notifications**: New blood requests matching your pet's blood type within 100km
 - **Emergency notifications (24/7)**: Critical opt-in for night emergencies - EMPHASIZE THIS
 - Explain: "Your pet could save a life at any time"
 
@@ -150,7 +150,7 @@ Display as hints in the form:
     "title": "Stay connected",
     "description": "Get notified when pets nearby need blood donors matching {petName}.",
     "emergencyDescription": "Be available 24/7 to help in critical emergencies. Your pet could save a life.",
-    "infoMessage": "You'll receive alerts for blood requests within 200km that match your pet's blood type.",
+    "infoMessage": "You'll receive alerts for blood requests within 100km that match your pet's blood type.",
     "sendRequest": "Complete registration"
   },
   "donorLocation": {

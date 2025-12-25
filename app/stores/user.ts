@@ -9,6 +9,7 @@ export interface UserAuth {
   firstName: string
   lastName: string
   phone: string
+  photoUrl?: string
 }
 
 // Matrícula data for vet registration
@@ -171,6 +172,14 @@ export const useUserStore = defineStore('user', {
     setEmailVerified(verified: boolean) {
       this.isEmailVerified = verified
       persistState(this.$state)
+    },
+
+    // Update user profile
+    updateProfile(data: Partial<UserAuth>) {
+      if (this.auth) {
+        this.auth = { ...this.auth, ...data }
+        persistState(this.$state)
+      }
     },
 
     logout() {

@@ -2,12 +2,19 @@
 import { usePetsStore } from '~/stores/pets'
 import { useRequestsStore } from '~/stores/requests'
 import { useUserStore } from '~/stores/user'
+import { useNotificationsStore } from '~/stores/notifications'
 
 const { t } = useI18n()
 const router = useRouter()
 const petsStore = usePetsStore()
 const requestsStore = useRequestsStore()
 const userStore = useUserStore()
+const notificationsStore = useNotificationsStore()
+
+// Navigate to notifications
+const goToNotifications = () => {
+  navigateTo('/notifications')
+}
 
 // Types
 type BloodUnitStatus = 'available' | 'reserved' | 'pending' | 'expired'
@@ -460,6 +467,20 @@ const activeTab = ref<'units' | 'donors'>('units')
         <div>
           <h1 class="text-lg font-bold text-gray-900 dark:text-white">{{ $t('nav.requests') }}</h1>
         </div>
+        <button
+          type="button"
+          @click="goToNotifications"
+          class="relative p-2 -mr-2 text-gray-500 dark:text-gray-400"
+        >
+          <Icon name="heroicons:bell" class="w-6 h-6" />
+          <!-- Notification badge -->
+          <span
+            v-if="notificationsStore.unreadCount > 0"
+            class="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] font-medium text-white flex items-center justify-center"
+          >
+            {{ notificationsStore.unreadCount > 9 ? '9+' : notificationsStore.unreadCount }}
+          </span>
+        </button>
       </div>
 
       <!-- View Mode Toggle (if user has both donor pets and active blood request) -->

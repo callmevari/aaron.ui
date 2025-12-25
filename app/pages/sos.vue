@@ -240,6 +240,7 @@ const handleSubmit = async () => {
       await requestsStore.createVetRequest({
         type: 'vet',
         species,
+        patientName: form.patientName,
         description: form.whatHappened || undefined,
         location: {
           lat: userLocation.latitude,

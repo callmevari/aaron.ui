@@ -153,7 +153,7 @@ Shows based on user's registered content:
 Future enhancements (not in current scope)
 
 Location update for active requests:
-- When user opens the app, check if they are outside their last saved 200km radius
+- When user opens the app, check if they are outside their last saved 100km radius
 - If outside: prompt "Update my location?" to update the search center for their active requests
 - If inside: silently keep using the last saved location (no prompt needed)
 - This allows users who travel (e.g., from clinic to home) to keep receiving relevant matches

@@ -11,7 +11,7 @@
     "welcomeTitle": "Donante registrado!",
     "welcomeMessage": "{petName} ahora está registrado como donante de sangre. Gracias por ayudar a salvar vidas!",
     "myDonors": "Mis Donantes",
-    "addPet": "Agregar mascota",
+    "addPet": "Agregar donante",
     "bloodType": "Tipo de sangre",
     "years": "años",
     "noDonorsTitle": "Sin donantes aún",
@@ -219,7 +219,7 @@
     "blocked": "Notificaciones bloqueadas",
     "blockedDescription": "Por favor, habilitá las notificaciones en la configuración de tu dispositivo para recibir alertas cuando haya sangre disponible.",
     "unsupported": "Las notificaciones push no están soportadas en este entorno. Podés seguir tu solicitud desde la app.",
-    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 200km de tu ubicación.",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
     "recipients": "donantes, veterinarias y bancos de sangre",
     "sendRequest": "Enviar solicitud de sangre",
     "sendingRequest": "Enviando solicitud...",
@@ -306,15 +306,15 @@
   "vetNotifications": {
     "description": "Recibí notificaciones instantáneas cuando un veterinario esté listo para ayudar a {petName}.",
     "enabledDescription": "Recibirás alertas cuando las clínicas estén listas para asistir con tu emergencia.",
-    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 200km de tu ubicación.",
+    "infoMessage": "Tu solicitud será enviada a {recipients} dentro de 100km de tu ubicación.",
     "recipients": "clínicas veterinarias y centros de emergencia",
     "sendRequest": "Enviar solicitud de veterinario",
     "legend": "A continuación, verás una lista de veterinarios y clínicas disponibles cerca de vos listos para ayudar."
   },
   "vetRegistrationNotifications": {
     "description": "Recibí notificaciones cuando dueños de mascotas cercanos necesiten asistencia veterinaria.",
-    "enabledDescription": "Recibirás alertas de emergencia de dueños de mascotas dentro de 200km que necesiten tu ayuda.",
-    "infoMessage": "Recibirás alertas de emergencias veterinarias dentro de 200km de tu ubicación.",
+    "enabledDescription": "Recibirás alertas de emergencia de dueños de mascotas dentro de 100km que necesiten tu ayuda.",
+    "infoMessage": "Recibirás alertas de emergencias veterinarias dentro de 100km de tu ubicación.",
     "sendRequest": "Completar registro"
   },
   "donor": {
@@ -348,15 +348,32 @@
   "donorNotifications": {
     "description": "Recibí notificaciones cuando mascotas cercanas necesiten donantes de sangre que coincidan con {petName}.",
     "emergencyDescription": "Estás disponible 24/7 para ayudar en emergencias críticas. Tu mascota podría salvar una vida.",
-    "enabledDescription": "Recibirás alertas de solicitudes de sangre dentro de 200km que coincidan con el tipo de sangre de tu mascota.",
+    "enabledDescription": "Recibirás alertas de solicitudes de sangre dentro de 100km que coincidan con el tipo de sangre de tu mascota.",
     "onlyMatchingRequests": "Solo te notificaremos sobre solicitudes de sangre compatibles.",
-    "infoMessage": "Recibirás alertas de solicitudes de sangre dentro de 200km que coincidan con el tipo de sangre de tu mascota.",
+    "infoMessage": "Recibirás alertas de solicitudes de sangre dentro de 100km que coincidan con el tipo de sangre de tu mascota.",
     "sendRequest": "Completar registro"
   },
   "regularNotifications": {
     "description": "Recibí notificaciones sobre solicitudes de sangre, donantes disponibles y novedades veterinarias en tu zona.",
-    "enabledDescription": "Recibirás alertas sobre emergencias de sangre y ayuda disponible dentro de 200km.",
-    "infoMessage": "Recibirás actualizaciones sobre solicitudes de sangre y donantes dentro de 200km de tu ubicación.",
+    "enabledDescription": "Recibirás alertas sobre emergencias de sangre y ayuda disponible dentro de 100km.",
+    "infoMessage": "Recibirás actualizaciones sobre solicitudes de sangre y donantes dentro de 100km de tu ubicación.",
     "sendRequest": "Completar registro"
+  },
+  "profilePage": {
+    "personalInfo": "Información Personal",
+    "professionalInfo": "Información Profesional",
+    "edit": "Editar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "logout": "Cerrar sesión"
+  },
+  "notificationsPage": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones",
+    "emptyDesc": "Aquí verás alertas sobre solicitudes de sangre y donantes.",
+    "justNow": "Ahora",
+    "minutesAgo": "Hace {count}m",
+    "hoursAgo": "Hace {count}h",
+    "daysAgo": "Hace {count}d"
   }
 }
